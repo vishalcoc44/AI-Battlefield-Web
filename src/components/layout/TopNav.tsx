@@ -1,0 +1,177 @@
+"use client"
+
+import * as React from "react"
+import {
+  Home,
+  Users,
+  Swords,
+  Trophy,
+  User,
+  Menu,
+  Zap,
+  BrainCircuit,
+  Ghost,
+  Globe,
+  GraduationCap,
+  Database
+} from "lucide-react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+
+interface NavItemProps {
+  href: string
+  icon: React.ReactNode
+  label: string
+}
+
+function NavItem({ href, icon, label }: NavItemProps) {
+  const pathname = usePathname()
+  const isActive = pathname === href || pathname.startsWith(`${href}/`)
+
+  return (
+    <Link href={href}>
+      <Button
+        variant="ghost"
+        size="sm"
+        className={cn(
+          "h-9 gap-2 px-4 rounded-full transition-all duration-300 relative overflow-hidden group",
+          isActive
+            ? "bg-white/10 text-white font-bold shadow-[0_0_15px_-3px_rgba(255,255,255,0.3)] border border-white/20"
+            : "text-zinc-400 hover:bg-white/5 hover:text-white"
+        )}
+      >
+        {isActive && <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />}
+        <span className={cn("relative z-10", isActive ? "text-white" : "text-zinc-400 group-hover:text-white")}>{icon}</span>
+        <span className="relative z-10">{label}</span>
+      </Button>
+    </Link>
+  )
+}
+
+export function TopNav() {
+  return (
+    <div className="sticky top-0 z-50 flex flex-col backdrop-blur-xl bg-black/60 border-b border-white/10 supports-[backdrop-filter]:bg-black/40">
+      {/* Top Row: Brand & Actions */}
+      <div className="px-4 md:px-6 h-16 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          {/* Mobile Menu Trigger */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden -ml-2 text-zinc-400 hover:text-white">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-4 w-72 glass-card border-r-white/10 bg-black/90">
+              <div className="flex flex-col gap-2 mt-8">
+                <NavItem href="/dashboard" icon={<Home size={18} />} label="Home" />
+                <NavItem href="/communities" icon={<Users size={18} />} label="Communities" />
+                <NavItem href="/academy" icon={<GraduationCap size={18} />} label="Academy" />
+                <NavItem href="/war-room" icon={<Globe size={18} />} label="War Room" />
+                <NavItem href="/intel" icon={<Database size={18} />} label="Intel Ops" />
+                <NavItem href="/gym" icon={<Swords size={18} />} label="Debate Gym" />
+                <NavItem href="/prediction" icon={<Trophy size={18} />} label="Prediction Lab" />
+                <NavItem href="/dojo" icon={<BrainCircuit size={18} />} label="Zen Dojo" />
+                <NavItem href="/void" icon={<Ghost size={18} />} label="The Void" />
+                <NavItem href="/profile/beliefs" icon={<BrainCircuit size={18} />} label="Beliefs" />
+                <NavItem href="/profile" icon={<User size={18} />} label="Profile" />
+              </div>
+            </SheetContent>
+          </Sheet>
+
+          {/* Logo */}
+          <Link href="/dashboard" className="flex items-center gap-3 group">
+            <div className="relative h-9 w-9 flex items-center justify-center">
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl blur opacity-70 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative h-full w-full bg-black/50 rounded-xl flex items-center justify-center border border-white/10 group-hover:border-white/30 transition-colors">
+                <span className="text-white font-black text-xs">AI</span>
+              </div>
+            </div>
+            <span className="font-black text-lg tracking-tight hidden md:inline-block text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-200 to-zinc-500Group">Battlefield</span>
+          </Link>
+        </div>
+
+        {/* Right Side Actions */}
+        <div className="flex items-center gap-3">
+
+
+          <div className="hidden sm:flex items-center gap-3 bg-white/5 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/5 shadow-inner">
+            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Lvl 12</span>
+            <div className="h-4 w-px bg-white/10" />
+            <div className="flex items-center gap-2">
+              <Zap className="h-3 w-3 text-yellow-500 fill-yellow-500 animate-pulse" />
+              <span className="text-xs font-bold tabular-nums text-white">2,450 XP</span>
+            </div>
+          </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-transparent p-0 ring-2 ring-transparent hover:ring-white/10 transition-all">
+                <Avatar className="h-9 w-9 border border-white/10">
+                  <AvatarImage src="/avatars/01.png" alt="User" />
+                  <AvatarFallback className="bg-zinc-900 text-white font-bold">U</AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-64 glass-card border-white/10 bg-black/90 backdrop-blur-xl p-2" align="end" forceMount>
+              <DropdownMenuLabel className="font-normal p-2">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-bold leading-none text-white">Cyber Philosopher</p>
+                  <p className="text-xs leading-none text-zinc-500">
+                    user@aibattlefield.com
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-white/10" />
+              <DropdownMenuItem asChild className="hover:bg-white/10 focus:bg-white/10 rounded-lg cursor-pointer text-zinc-300 focus:text-white">
+                <Link href="/profile"><User className="mr-2 h-4 w-4" /> Profile</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="hover:bg-white/10 focus:bg-white/10 rounded-lg cursor-pointer text-zinc-300 focus:text-white">
+                <Link href="/profile/beliefs"><BrainCircuit className="mr-2 h-4 w-4" /> Belief Tracker</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="hover:bg-white/10 focus:bg-white/10 rounded-lg cursor-pointer text-zinc-300 focus:text-white">
+                <Zap className="mr-2 h-4 w-4 text-yellow-500" />
+                <span>Subscription</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-white/10" />
+              <DropdownMenuItem asChild className="hover:bg-red-500/10 focus:bg-red-500/10 text-red-400 focus:text-red-300 rounded-lg cursor-pointer">
+                <Link href="/auth">
+                  <span className="flex items-center w-full">Log out</span>
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+
+      {/* Bottom Row: Navigation Links */}
+      <div className="border-t border-white/5 bg-black/40 backdrop-blur-xl">
+        <div className="px-4 md:px-6 h-12 flex items-center overflow-x-auto no-scrollbar mask-gradient-x">
+          <nav className="flex items-center gap-1 min-w-max mx-auto md:mx-0">
+            <NavItem href="/dashboard" icon={<Home size={14} />} label="Home" />
+            <NavItem href="/communities" icon={<Users size={14} />} label="Communities" />
+            <NavItem href="/academy" icon={<GraduationCap size={14} />} label="Academy" />
+            <NavItem href="/war-room" icon={<Globe size={14} />} label="War Room" />
+            <NavItem href="/intel" icon={<Database size={14} />} label="Intel Ops" />
+            <NavItem href="/gym" icon={<Swords size={14} />} label="Debate Gym" />
+            <NavItem href="/prediction" icon={<Trophy size={14} />} label="Prediction Lab" />
+            <NavItem href="/dojo" icon={<BrainCircuit size={14} />} label="Zen Dojo" />
+            <NavItem href="/void" icon={<Ghost size={14} />} label="The Void" />
+            <NavItem href="/profile/beliefs" icon={<BrainCircuit size={14} />} label="Beliefs" />
+          </nav>
+        </div>
+      </div>
+    </div>
+  )
+}

@@ -1,0 +1,61 @@
+# AI Battlefield - Feature Inventory
+
+## 1. Landing Page (/)
+- **Visuals:** Immersive "Cosmic" background, 3D text effects, animated grids, noise overlays.
+- **Navigation:** Floating glass navbar with anchor links and auth shortcuts.
+- **Content:** Hero section, features grid (Holographic cards), User Evolution steps, CTA.
+
+## 2. Authentication (/auth)
+- **Functionality:** Email/Password & Social Providers (GitHub, Google).
+- **UI:** Tabbed interface for Sign In / Sign Up, consistent cosmic styling.
+
+## 3. Dashboard - "Command Center" (/dashboard)
+- **HUD Interface:** Neural alignment status, user level/XP progress, gamified stats.
+- **Top Stats:** Views Shifted, Debates Won (Holographic cards).
+- **Quick Access:** direct links to Debate Gym, Zen Dojo, Prediction Lab.
+- **Analytics:** Argument Strength Meter (Chart).
+- **Live Feed:** Real-time stream of recent debates and prediction bets.
+
+## 4. Debate Gym (/gym)
+- **Lobby:** View active debate rings, participant counts, and categories.
+- **Room Creation:** Dialog to spawn new debate rooms with custom topics/variables.
+- **Spectator Mode:** Watch featured high-stakes debates.
+- **Drill Modules:**
+  - **Fallacy Finder:** AI generates fallacious statements; user must identify the logical error.
+  - **Rapid Rebuttal:** Timed challenges to construct strong counter-arguments.
+
+## 5. Zen Dojo (/dojo)
+- **Simulation:** "Internet Troll" scenario where AI actively tries to trigger the user.
+- **Mechanics:** Real-time "Calm Score" tracking based on sentiment analysis of user replies.
+- **Feedback:** Immediate AI analysis of whether a response was "Calm/Rational" or "Triggered".
+
+## 6. Prediction Lab (/prediction)
+- **Markets:** Betting interface for future events (e.g., AGI timelines).
+- **Interaction:** Probability sliders (0-100%) to stake reputation.
+- **Stats:** Personal Brier Score (accuracy), Global Rank, Portfolio management.
+
+## 7. Profile Section (/profile)
+- **Main Profile:** User stats, avatar management, activity summary.
+- **sub-page: Belief Tracker:**
+  - Visual timeline of changed views.
+  - Status indicators: Reinforced, Shifted, Shattered.
+  - Confidence drift metrics (Initial % vs Current %).
+- **sub-page: Blind Spot Detector:**
+  - Radar Chart visualization of cognitive biases (Confirmation Bias, Ad Hominem, etc.).
+  - AI-generated alerts for specific recurring biases.
+
+## 8. Communities (/communities)
+- **Discovery:** Browse and join topic-specific factions/groups.
+- **Detail View:**
+  - **Activity Feed:** Posts and updates within the community.
+  - **Events:** Upcoming debates or town halls.
+  - **Member Roster:** List of participants.
+
+## 9. The Void (/void)
+- **Concept:** Anonymous, ephemeral thought stream.
+- **Mask System:** Users select a temporary identity (Neon Fox, Cyber Monk, etc.) before entering.
+- **UI:** Deep "Phantom" aesthetic with ghost/mask iconography.
+
+## 10. Global Design System
+- **Theme:** "Ultra-Premium Cosmic" – Pure black backgrounds, neon glassmorphism, holographic interactions.
+- **Nav:** Unified top navigation bar (desktop & mobile) linking all major modules.
