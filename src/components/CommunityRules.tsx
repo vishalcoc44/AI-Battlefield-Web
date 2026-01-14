@@ -33,7 +33,13 @@ export function CommunityRules({ community, showHeader = true }: CommunityRulesP
     )
   }
 
-  const rulesList = community.rules.split('\n').filter(rule => rule.trim())
+  let rulesList: string[] = []
+
+  if (Array.isArray(community.rules)) {
+    rulesList = community.rules.map(r => r.description || r.title)
+  } else if (typeof community.rules === 'string') {
+    rulesList = community.rules.split('\n').filter(rule => rule.trim())
+  }
 
   return (
     <Card>
