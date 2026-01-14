@@ -13,6 +13,8 @@ const MASKS = [
    { name: "Glitch Face", icon: <ScanFace className="h-12 w-12 text-emerald-500" /> },
 ]
 
+import { CosmicBackground } from "@/components/ui/cosmic-background"
+
 export default function VoidPage() {
    const [selectedMask, setSelectedMask] = useState<string | null>(null)
 
@@ -20,14 +22,7 @@ export default function VoidPage() {
       <div className="dark flex flex-col min-h-screen bg-black text-white font-sans overflow-x-hidden selection:bg-purple-500/30">
 
          {/* 🌌 Cosmic Background */}
-         <div className="fixed inset-0 z-0 pointer-events-none">
-            <div className="absolute inset-0 bg-gradient-to-br from-black via-[#050510] to-[#0a0a15]" />
-            <div className="absolute inset-0 bg-grid-white/[0.04] [mask-image:radial-gradient(ellipse_at_center,black,transparent)]" />
-            <div className="bg-noise opacity-[0.15]" />
-            {/* Orbs */}
-            <div className="absolute top-[-20%] left-[20%] w-[60vw] h-[60vw] bg-purple-900/10 rounded-full blur-[150px] animate-slow-spin mix-blend-screen" />
-            <div className="absolute bottom-[-10%] right-[10%] w-[40vw] h-[40vw] bg-indigo-900/10 rounded-full blur-[150px] animate-slow-spin animation-delay-2000 mix-blend-screen" />
-         </div>
+         <CosmicBackground theme="monochrome" />
 
          <div className="relative z-10 flex flex-col min-h-screen">
             <TopNav />

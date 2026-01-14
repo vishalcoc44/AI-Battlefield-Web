@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress"
 import { Send, Wind, AlertTriangle, Loader2, Sparkles, BrainCircuit, User, Terminal, Zap } from "lucide-react"
 import { geminiModel } from "@/lib/gemini"
 import { supabase } from "@/lib/supabase"
+import { CosmicBackground } from "@/components/ui/cosmic-background"
 
 type DojoMessage = {
    id: number
@@ -116,14 +117,7 @@ export default function DojoPage() {
    return (
       <div className="flex flex-col h-screen bg-black text-white relative overflow-hidden selection:bg-cyan-500/30 font-sans">
          {/* 🌌 Cosmic Background: Zen Void (Standardized) */}
-         <div className="fixed inset-0 z-0 pointer-events-none">
-            <div className="absolute inset-0 bg-gradient-to-br from-black via-[#050510] to-[#0a0a15]" />
-            <div className="absolute inset-0 bg-grid-white/[0.04] [mask-image:radial-gradient(ellipse_at_center,black,transparent)]" />
-            <div className="bg-noise opacity-[0.15]" />
-            {/* Orbs - Cyan vs Red */}
-            <div className="absolute top-[-10%] right-[-10%] w-[30vw] h-[30vw] bg-cyan-600/10 rounded-full blur-[120px] animate-slow-spin" />
-            <div className="absolute bottom-[-10%] left-[-10%] w-[40vw] h-[40vw] bg-red-600/10 rounded-full blur-[150px] animate-slow-spin animation-delay-2000" />
-         </div>
+         <CosmicBackground theme="cyan" />
 
          <div className="relative z-10 w-full"><TopNav /></div>
 

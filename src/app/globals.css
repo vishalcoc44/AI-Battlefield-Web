@@ -240,3 +240,71 @@
 .animate-float {
   animation: float 6s ease-in-out infinite;
 }
+
+@keyframes shimmer {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s linear infinite;
+}
+
+@keyframes meteor {
+  0% {
+    transform: rotate(215deg) translateX(0);
+    opacity: 1;
+  }
+
+  70% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: rotate(215deg) translateX(-500px);
+    opacity: 0;
+  }
+}
+
+.animate-meteor {
+  animation: meteor 5s linear infinite;
+}
+
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+  }
+
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+.animate-scanline {
+  animation: scanline 8s linear infinite;
+}
+
+/* Ultra-Modern Utilities */
+.text-shimmer {
+  background: linear-gradient(110deg,
+      #71717a 45%,
+      #fff 50%,
+      #71717a 55%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 5s infinite linear;
+}
+
+.glass-capsule {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}

@@ -14,6 +14,7 @@ import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { dataService, type UserStats, type RecentDebate, type UserPrediction, type GymRoom } from "@/lib/data-service"
 import { supabase } from "@/lib/supabase"
+import { CosmicBackground } from "@/components/ui/cosmic-background"
 
 export default function HomeScreen() {
    const [stats, setStats] = useState<UserStats | null>(null)
@@ -47,18 +48,10 @@ export default function HomeScreen() {
    const totalGymParticipants = gymRooms.reduce((acc, room) => acc + room.activeParticipants, 0)
 
    return (
-      <div className="dark flex flex-col min-h-screen bg-black text-white font-sans overflow-x-hidden selection:bg-cyan-500/30">
+      <div className="dark flex flex-col min-h-screen bg-black text-white font-sans overflow-x-hidden selection:bg-purple-500/30">
 
          {/* 🌌 Cosmic Background */}
-         <div className="fixed inset-0 z-0 pointer-events-none">
-            <div className="absolute inset-0 bg-gradient-to-br from-black via-[#050510] to-[#0a0a15]" />
-            <div className="absolute inset-0 bg-grid-white/[0.04] [mask-image:radial-gradient(ellipse_at_center,black,transparent)]" />
-            <div className="bg-noise opacity-[0.15]" />
-
-            {/* Animated Orbs */}
-            <div className="absolute top-[-10%] left-[20%] w-[30vw] h-[30vw] bg-blue-600/10 rounded-full blur-[120px] animate-slow-spin" />
-            <div className="absolute bottom-[-10%] right-[20%] w-[30vw] h-[30vw] bg-cyan-600/10 rounded-full blur-[120px] animate-slow-spin animation-delay-2000" />
-         </div>
+         <CosmicBackground theme="indigo" />
 
          <div className="relative z-10">
             <TopNav />

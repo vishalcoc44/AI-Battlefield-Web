@@ -5,15 +5,13 @@ import { Button } from "@/components/ui/button"
 import { Database, Search, FileText, FolderLock } from "lucide-react"
 import { Input } from "@/components/ui/input"
 
+import { CosmicBackground } from "@/components/ui/cosmic-background"
+
 export default function IntelPage() {
 	return (
 		<div className="dark flex flex-col min-h-screen bg-black text-white font-sans overflow-x-hidden selection:bg-emerald-500/30">
 			{/* 🌌 Cosmic Background - Matrix Theme */}
-			<div className="fixed inset-0 z-0 pointer-events-none">
-				<div className="absolute inset-0 bg-gradient-to-br from-black via-[#051005] to-[#000]" />
-				<div className="absolute inset-0 bg-[linear-gradient(to_right,#00ff0012_1px,transparent_1px),linear-gradient(to_bottom,#00ff0012_1px,transparent_1px)] bg-[size:24px_24px] opacity-20" />
-				<div className="absolute top-[-20%] right-[20%] w-[60vw] h-[60vw] bg-emerald-600/10 rounded-full blur-[150px] animate-pulse mix-blend-screen" />
-			</div>
+			<CosmicBackground theme="emerald" />
 
 			<div className="relative z-10 flex flex-col min-h-screen">
 				<TopNav />
