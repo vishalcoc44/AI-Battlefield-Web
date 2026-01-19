@@ -13,10 +13,13 @@ import {
   Ghost,
   Globe,
   GraduationCap,
-  Database
+  Database,
+  LogOut,
+  Settings,
+  CreditCard
 } from "lucide-react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -29,6 +32,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { useUser } from "@/hooks/use-user"
 
 interface NavItemProps {
   href: string
@@ -61,8 +65,19 @@ function NavItem({ href, icon, label }: NavItemProps) {
 }
 
 export function TopNav() {
+  const { user, profile, signOut } = useUser()
+  const router = useRouter()
+
+  const handleSignOut = async () => {
+    await signOut()
+    router.push('/auth')
+  }
+
+  // Fallback initials
+  const initials = profile?.username?.substring(0, 2).toUpperCase() || user?.email?.substring(0, 2).toUpperCase() || "U"
+
   return (
-    <div className="sticky top-0 z-50 flex flex-col backdrop-blur-xl bg-black/60 border-b border-white/10 supports-[backdrop-filter]:bg-black/40">
+    <div className="sticky top-0 z-50 flex flex-col backdrop-blur-2xl bg-[#09090b]/80 border-b border-white/[0.08] supports-[backdrop-filter]:bg-[#09090b]/80 shadow-[0_4px_30px_-10px_rgba(0,0,0,0.5)]">
       {/* Top Row: Brand & Actions */}
       <div className="px-4 md:px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -118,37 +133,80 @@ export function TopNav() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-transparent p-0 ring-2 ring-transparent hover:ring-white/10 transition-all">
-                <Avatar className="h-9 w-9 border border-white/10">
-                  <AvatarImage src="/avatars/01.png" alt="User" />
-                  <AvatarFallback className="bg-zinc-900 text-white font-bold">U</AvatarFallback>
+                <Avatar className="h-9 w-9 border border-white/10 shadow-[0_0_15px_-5px_rgba(255,255,255,0.3)]">
+                  <AvatarImage src={profile?.avatar_url || "/avatars/01.png"} alt={profile?.username || "User"} />
+                  <AvatarFallback className="bg-zinc-900 text-white font-bold">{initials}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-64 glass-card border-white/10 bg-black/90 backdrop-blur-xl p-2" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal p-2">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-bold leading-none text-white">Cyber Philosopher</p>
-                  <p className="text-xs leading-none text-zinc-500">
-                    user@aibattlefield.com
-                  </p>
+            <DropdownMenuContent
+              className="w-72 mt-2 bg-black/80 backdrop-blur-xl border border-white/10 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] rounded-xl p-2 relative overflow-hidden"
+              align="end"
+              forceMount
+            >
+              {/* Glossy Overlay */}
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/5 to-transparent h-24" />
+
+              <DropdownMenuLabel className="font-normal p-3 relative z-10">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-10 w-10 border border-white/10">
+                    <AvatarImage src={profile?.avatar_url || "/avatars/01.png"} alt={profile?.username || "User"} />
+                    <AvatarFallback className="bg-zinc-800 text-white font-bold text-xs">{initials}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col space-y-1 overflow-hidden">
+                    <p className="text-sm font-bold leading-none text-white truncate">
+                      {profile?.username || "Agnet"}
+                    </p>
+                    <p className="text-xs leading-none text-zinc-500 truncate">
+                      {user?.email || "signing in..."}
+                    </p>
+                  </div>
                 </div>
               </DropdownMenuLabel>
+
+              <div className="px-2 py-1.5 bg-white/5 rounded-lg mb-2 relative z-10 border border-white/5 mx-1">
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="text-zinc-400">Level 12</span>
+                  <span className="text-white font-bold">2,450 XP</span>
+                </div>
+                <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-sky-500 to-indigo-500 w-[65%]" />
+                </div>
+              </div>
+
               <DropdownMenuSeparator className="bg-white/10" />
-              <DropdownMenuItem asChild className="hover:bg-white/10 focus:bg-white/10 rounded-lg cursor-pointer text-zinc-300 focus:text-white">
-                <Link href="/profile"><User className="mr-2 h-4 w-4" /> Profile</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="hover:bg-white/10 focus:bg-white/10 rounded-lg cursor-pointer text-zinc-300 focus:text-white">
-                <Link href="/profile/beliefs"><BrainCircuit className="mr-2 h-4 w-4" /> Belief Tracker</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="hover:bg-white/10 focus:bg-white/10 rounded-lg cursor-pointer text-zinc-300 focus:text-white">
-                <Zap className="mr-2 h-4 w-4 text-yellow-500" />
-                <span>Subscription</span>
-              </DropdownMenuItem>
+
+              <div className="p-1 space-y-1 relative z-10">
+                <DropdownMenuItem asChild className="group hover:bg-white/10 focus:bg-white/10 rounded-lg cursor-pointer text-zinc-400 focus:text-white transition-colors">
+                  <Link href="/profile" className="flex items-center gap-2">
+                    <User className="h-4 w-4 group-hover:text-sky-400 transition-colors" />
+                    <span>Profile</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="group hover:bg-white/10 focus:bg-white/10 rounded-lg cursor-pointer text-zinc-400 focus:text-white transition-colors">
+                  <Link href="/profile/beliefs" className="flex items-center gap-2">
+                    <BrainCircuit className="h-4 w-4 group-hover:text-purple-400 transition-colors" />
+                    <span>Belief Tracker</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="group hover:bg-white/10 focus:bg-white/10 rounded-lg cursor-pointer text-zinc-400 focus:text-white transition-colors">
+                  <CreditCard className="h-4 w-4 mr-2 group-hover:text-yellow-400 transition-colors" />
+                  <span>Subscription</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="group hover:bg-white/10 focus:bg-white/10 rounded-lg cursor-pointer text-zinc-400 focus:text-white transition-colors">
+                  <Settings className="h-4 w-4 mr-2 group-hover:text-gray-200 transition-colors" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+              </div>
+
               <DropdownMenuSeparator className="bg-white/10" />
-              <DropdownMenuItem asChild className="hover:bg-red-500/10 focus:bg-red-500/10 text-red-400 focus:text-red-300 rounded-lg cursor-pointer">
-                <Link href="/auth">
-                  <span className="flex items-center w-full">Log out</span>
-                </Link>
+
+              <DropdownMenuItem
+                onClick={handleSignOut}
+                className="group hover:bg-red-500/10 focus:bg-red-500/10 text-red-500/80 focus:text-red-400 rounded-lg cursor-pointer m-1"
+              >
+                <LogOut className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform" />
+                <span>Log out</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

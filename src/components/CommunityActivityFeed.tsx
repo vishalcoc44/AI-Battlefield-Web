@@ -15,6 +15,8 @@ import {
   Loader2
 } from "lucide-react"
 import { dataService, type CommunityActivityFeedItem } from "@/lib/data-service"
+import { COMMUNITY_CONSTANTS } from "@/lib/constants/communities"
+import { sanitizeText } from "@/lib/utils"
 
 interface CommunityActivityFeedProps {
   limit?: number
@@ -22,7 +24,7 @@ interface CommunityActivityFeedProps {
   communityId?: string
 }
 
-export function CommunityActivityFeed({ limit = 10, showHeader = true, communityId }: CommunityActivityFeedProps) {
+export function CommunityActivityFeed({ limit = COMMUNITY_CONSTANTS.ACTIVITY_FEED_LIMIT, showHeader = true, communityId }: CommunityActivityFeedProps) {
   const [activities, setActivities] = useState<CommunityActivityFeedItem[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -123,11 +125,11 @@ export function CommunityActivityFeed({ limit = 10, showHeader = true, community
                   </div>
 
                   <h4 className="font-medium text-sm mb-1 leading-tight">
-                    {activity.title}
+                    {sanitizeText(activity.title)}
                   </h4>
 
                   <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
-                    {activity.description}
+                    {sanitizeText(activity.description)}
                   </p>
 
                   <div className="flex items-center gap-4 text-xs text-muted-foreground">

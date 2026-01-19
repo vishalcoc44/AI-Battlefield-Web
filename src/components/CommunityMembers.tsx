@@ -17,6 +17,8 @@ import {
   Loader2
 } from "lucide-react"
 import { dataService, type CommunityMember } from "@/lib/data-service"
+import { sanitizeText } from "@/lib/utils"
+import { COMMUNITY_CONSTANTS } from "@/lib/constants/communities"
 
 interface CommunityMembersProps {
   communityId: string
@@ -26,7 +28,7 @@ interface CommunityMembersProps {
 
 export function CommunityMembers({
   communityId,
-  limit = 10,
+  limit = COMMUNITY_CONSTANTS.MEMBERS_LIMIT,
   showHeader = true
 }: CommunityMembersProps) {
   const [members, setMembers] = useState<CommunityMember[]>([])
@@ -136,7 +138,7 @@ export function CommunityMembers({
 
                     {member.bio && (
                       <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                        {member.bio}
+                        {sanitizeText(member.bio)}
                       </p>
                     )}
 

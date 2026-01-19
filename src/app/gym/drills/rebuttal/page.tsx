@@ -7,42 +7,51 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { Timer, Zap, Send, RotateCcw, AlertTriangle, CheckCircle2 } from "lucide-react"
-
-const DRILL_TOPICS = [
-	{
-		id: 1,
-		argument: "Artificial Intelligence will inevitably lead to mass unemployment, so we must ban its development immediately.",
-		context: "Tech Policy Debate"
-	},
-	{
-		id: 2,
-		argument: "Meat consumption is immoral because it causes suffering to sentient beings, therefore everyone should be legally required to be vegan.",
-		context: "Ethics Debate"
-	},
-	{
-		id: 3,
-		argument: "Space exploration is a waste of money when we have so many problems on Earth to fix first.",
-		context: "Resource Allocation Debate"
-	}
-]
+import { Timer, Zap, Send, RotateCcw, CheckCircle2, Loader2, Trophy } from "lucide-react"
+import { dataService } from "@/lib/data-service"
+import { GymDrill } from "@/lib/types"
+import { sanitizeText } from "@/lib/utils"
+import { GYM_CONSTANTS } from "@/lib/constants/gym"
 
 export default function RapidRebuttalPage() {
-	const [activeTopic, setActiveTopic] = useState(0)
-	const [timeLeft, setTimeLeft] = useState(60)
+	const [drills, setDrills] = useState<GymDrill[]>([])
+	const [loading, setLoading] = useState(true)
+	const [activeDrillIndex, setActiveDrillIndex] = useState(0)
+
+	const [timeLeft, setTimeLeft] = useState(GYM_CONSTANTS.TIMER.DRILL_DURATION_SECONDS)
 	const [isActive, setIsActive] = useState(false)
 	const [rebuttal, setRebuttal] = useState("")
 	const [isFinished, setIsFinished] = useState(false)
 	const [feedback, setFeedback] = useState<any>(null)
+	const [saving, setSaving] = useState(false)
 
 	const timerRef = useRef<NodeJS.Timeout | null>(null)
+
+	useEffect(() => {
+		async function loadDrills() {
+			setLoading(true)
+			try {
+				const data = await dataService.getDrills('rebuttal')
+				if (data && data.length > 0) {
+					setDrills(data)
+				} else {
+					setDrills([])
+				}
+			} catch (error) {
+				console.error("Failed to load rebuttal drills", error)
+			} finally {
+				setLoading(false)
+			}
+		}
+		loadDrills()
+	}, [])
 
 	useEffect(() => {
 		if (isActive && timeLeft > 0) {
 			timerRef.current = setInterval(() => {
 				setTimeLeft((prev) => prev - 1)
 			}, 1000)
-		} else if (timeLeft === 0 && isActive) {
+		} else if (timeLeft <= 0 && isActive) {
 			handleSubmit()
 		}
 
@@ -55,40 +64,71 @@ export default function RapidRebuttalPage() {
 		setIsActive(true)
 		setIsFinished(false)
 		setFeedback(null)
-		setTimeLeft(60)
+		setTimeLeft(GYM_CONSTANTS.TIMER.DRILL_DURATION_SECONDS)
 		setRebuttal("")
 	}
 
-	const handleSubmit = () => {
+	const handleSubmit = async () => {
 		if (timerRef.current) clearInterval(timerRef.current)
 		setIsActive(false)
 		setIsFinished(true)
 
-		// Mock AI Analysis
+		// Mock AI Analysis (Phase 2 limitation: we don't have real AI endpoint for grading yet, or we use client-side heuristic)
+		// For consistency with old code, we keep local heuristic, but SAVE it to DB.
 		const wordCount = rebuttal.trim().split(/\s+/).length
-		const score = Math.min(Math.round((wordCount / 50) * 100) + Math.random() * 20, 100) // Mock score logic
+		const rawScore = Math.min(Math.round((wordCount / 50) * 100) + Math.random() * 20, 100)
+		const finalScore = Math.min(Math.round(rawScore), 100)
 
-		setTimeout(() => {
-			setFeedback({
-				score: Math.min(score, 98),
-				strengths: ["Addressed the core premise", "Good use of counter-examples"],
-				improvements: ["Could be more concise", "Missed the economic angle"]
-			})
-		}, 1500)
+		const generatedFeedback = {
+			score: finalScore,
+			strengths: ["Addressed the core premise (Simulated)", "Good use of counter-examples (Simulated)"],
+			improvements: ["Could be more concise", "Consider alternative viewpoints"]
+		}
+
+		setFeedback(generatedFeedback)
+
+		// Persist via API
+		if (drills[activeDrillIndex]) {
+			setSaving(true)
+			try {
+				const response = await fetch('/api/drills/attempt', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						drillId: drills[activeDrillIndex].id,
+						score: finalScore,
+						feedback: { rebuttalText: rebuttal, ...generatedFeedback }
+					})
+				})
+
+				if (!response.ok) {
+					console.error('Failed to submit drill attempt')
+				}
+			} catch (e) {
+				console.error("Failed to save attempt", e)
+			} finally {
+				setSaving(false)
+			}
+		}
 	}
 
 	const handleNext = () => {
-		setActiveTopic(prev => (prev + 1) % DRILL_TOPICS.length)
+		setActiveDrillIndex(prev => (prev + 1) % drills.length)
 		setIsFinished(false)
 		setFeedback(null)
 		setRebuttal("")
 		setIsActive(false)
-		setTimeLeft(60)
+		setTimeLeft(GYM_CONSTANTS.TIMER.DRILL_DURATION_SECONDS)
 	}
 
-	return (
-		<div className="dark flex flex-col min-h-screen bg-black text-white font-sans overflow-x-hidden selection:bg-yellow-500/30">
+	if (loading) return (
+		<div className="dark min-h-screen flex items-center justify-center bg-black text-white">
+			<Loader2 className="h-10 w-10 animate-spin text-yellow-600" />
+		</div>
+	)
 
+	if (drills.length === 0) return (
+		<div className="dark flex flex-col min-h-screen bg-black text-white font-sans overflow-x-hidden selection:bg-yellow-500/30">
 			{/* 🌌 Cosmic Background */}
 			<div className="fixed inset-0 z-0 pointer-events-none">
 				<div className="absolute inset-0 bg-gradient-to-br from-black via-[#050510] to-[#0b102e]" />
@@ -100,17 +140,61 @@ export default function RapidRebuttalPage() {
 			<div className="relative z-10 flex flex-col min-h-screen">
 				<TopNav />
 				<main className="flex-1 p-4 md:p-8 max-w-3xl mx-auto w-full flex flex-col justify-center">
+					<div className="text-center space-y-6">
+						<div className="relative">
+							<div className="absolute inset-0 bg-yellow-500/20 rounded-full blur-3xl animate-pulse" />
+							<div className="relative bg-black/50 border border-white/10 rounded-3xl p-8 backdrop-blur-xl">
+								<Zap className="h-16 w-16 text-yellow-500 mx-auto mb-4 animate-pulse fill-yellow-500" />
+								<h3 className="text-2xl font-black uppercase tracking-tight text-white mb-2">
+									Rapid Fire Chambers Empty
+								</h3>
+								<p className="text-zinc-400 text-sm leading-relaxed mb-6 max-w-sm mx-auto">
+									The rebuttal training algorithms are being upgraded. Sharpen your wit elsewhere for now.
+								</p>
+								<div className="flex gap-3 justify-center">
+									<Button variant="outline" onClick={() => window.history.back()} className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10">
+										Return to Gym
+									</Button>
+									<Button className="bg-yellow-600 hover:bg-yellow-700 text-white" onClick={() => window.location.reload()}>
+										Check Again
+									</Button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</main>
+			</div>
+		</div>
+	)
 
+	const currentDrill = drills[activeDrillIndex]
+	// Expecting content: { argument, context }
+	const argument = currentDrill.content?.argument || "Argument missing"
+	const context = currentDrill.content?.context || "General Debate"
+
+	return (
+		<div className="dark flex flex-col min-h-screen bg-black text-white font-sans overflow-x-hidden selection:bg-yellow-500/30">
+			{/* 🌌 Cosmic Background */}
+			<div className="fixed inset-0 z-0 pointer-events-none">
+				<div className="absolute inset-0 bg-gradient-to-br from-black via-[#050510] to-[#0b102e]" />
+				<div className="absolute inset-0 bg-grid-white/[0.04] [mask-image:radial-gradient(ellipse_at_center,black,transparent)]" />
+				<div className="bg-noise opacity-[0.15]" />
+				<div className="absolute top-[20%] left-[-10%] w-[50vw] h-[50vw] bg-indigo-600/10 rounded-full blur-[120px] animate-pulse mix-blend-screen" />
+			</div>
+
+			<div className="relative z-10 flex flex-col min-h-screen">
+				<TopNav />
+				<main className="flex-1 p-4 md:p-8 max-w-3xl mx-auto w-full flex flex-col justify-center">
 					<div className="flex justify-between items-center mb-6">
 						<div>
 							<h1 className="text-2xl font-bold flex items-center gap-2">
 								<Zap className="h-6 w-6 text-yellow-500 fill-yellow-500" /> Rapid Rebuttal
 							</h1>
-							<p className="text-muted-foreground">Construct a convincing counter-argument before time runs out.</p>
+							<p className="text-muted-foreground mr-2">Construct a convincing counter-argument before time runs out.</p>
 						</div>
 
 						{!isFinished && isActive && (
-							<div className={`text-2xl font-mono font-bold flex items-center gap-2 ${timeLeft < 10 ? 'text-red-600 animate-pulse' : 'text-slate-700'}`}>
+							<div className={`text-2xl font-mono font-bold flex items-center gap-2 ${timeLeft <= 10 ? 'text-red-600 animate-pulse' : 'text-slate-700'}`}>
 								<Timer className="h-6 w-6" /> {timeLeft}s
 							</div>
 						)}
@@ -119,13 +203,13 @@ export default function RapidRebuttalPage() {
 					<Card className="shadow-xl border-slate-200 dark:border-slate-800 overflow-hidden">
 						{/* Progress Line */}
 						{isActive && (
-							<Progress value={(timeLeft / 60) * 100} className="h-1 rounded-none" />
+							<Progress value={(timeLeft / GYM_CONSTANTS.TIMER.DRILL_DURATION_SECONDS) * 100} className="h-1 rounded-none" />
 						)}
 
 						<CardHeader className="bg-slate-50/50 dark:bg-slate-900/50 border-b pb-6">
-							<Badge variant="secondary" className="w-fit mb-2">{DRILL_TOPICS[activeTopic].context}</Badge>
+							<Badge variant="secondary" className="w-fit mb-2">{context}</Badge>
 							<CardTitle className="text-xl md:text-2xl leading-relaxed">
-								"{DRILL_TOPICS[activeTopic].argument}"
+								"{sanitizeText(argument)}"
 							</CardTitle>
 						</CardHeader>
 
@@ -203,9 +287,14 @@ export default function RapidRebuttalPage() {
 										</div>
 									)}
 
-									<div className="flex justify-center mt-8">
-										<Button variant="outline" onClick={handleNext} size="lg" className="w-full md:w-auto">
+									{saving && <p className="text-center text-xs text-muted-foreground mt-2 animate-pulse">Saving results...</p>}
+
+									<div className="flex justify-center mt-8 gap-4">
+										<Button variant="outline" onClick={handleNext} size="lg">
 											Next Scenario <RotateCcw className="ml-2 h-4 w-4" />
+										</Button>
+										<Button className="bg-blue-600 hover:bg-blue-700" onClick={() => window.history.back()}>
+											Return to Gym
 										</Button>
 									</div>
 								</div>

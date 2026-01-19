@@ -7,19 +7,26 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import {
-	Users, Globe, Lock, Shield,
-	Trophy, TrendingUp, Share2, ArrowLeft,
-	Loader2, CalendarDays, MessageCircle, Zap, Activity
-} from "lucide-react"
+import { Shield, TrendingUp, MessageCircle, Trophy, ArrowLeft, Loader2, CalendarDays } from "lucide-react"
 import { dataService, type Community } from "@/lib/data-service"
-import { supabase } from "@/lib/supabase"
 import { CommunityActivityFeed } from "@/components/CommunityActivityFeed"
 import { CommunityDiscussions } from "@/components/CommunityDiscussions"
 import { CommunityEvents } from "@/components/CommunityEvents"
 import { CommunityMembers } from "@/components/CommunityMembers"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { TooltipProvider } from "@/components/ui/tooltip"
+
+import { useCommunityMembership } from "@/hooks/useCommunityMembership"
+import { CommunityHeader } from "@/components/CommunityHeader"
+import { CommunityStats } from "@/components/CommunityStats"
+import { CommunityErrorState } from "@/components/CommunityErrorState"
+import { CommunityChat } from "@/components/CommunityChat"
+import { CommunityEditFormData } from "@/lib/types/community-forms"
+import { classifyError, withRetry } from "@/lib/utils"
+import { COMMUNITY_CONSTANTS } from "@/lib/constants/communities"
 
 export default function CommunityDetailPage() {
 	const params = useParams()
@@ -28,84 +35,243 @@ export default function CommunityDetailPage() {
 
 	const [community, setCommunity] = useState<Community | null>(null)
 	const [loading, setLoading] = useState(true)
-	const [joining, setJoining] = useState(false)
-	const [isMember, setIsMember] = useState(false)
+	const [error, setError] = useState<string | null>(null)
 	const [memberCount, setMemberCount] = useState<string>("0")
+
+	// Membership Hook
+	const {
+		isMember,
+		isAdmin,
+		loading: membershipLoading,
+		joining,
+		joinCommunity,
+		leaveCommunity,
+		userId
+	} = useCommunityMembership(id)
+
+	// Dialog States
 	const [feedbackDialog, setFeedbackDialog] = useState<{ open: boolean, title: string, message: string }>({ open: false, title: '', message: '' })
-	const [confirmDialog, setConfirmDialog] = useState<{ open: boolean, title: string, message: string, onConfirm: () => void }>({ open: false, title: '', message: '', onConfirm: () => { } })
+	const [editDialogOpen, setEditDialogOpen] = useState(false)
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+	const [leaveDialogOpen, setLeaveDialogOpen] = useState(false)
+
+	// Edit Form State
+	const [editData, setEditData] = useState<CommunityEditFormData>({})
+	const [saving, setSaving] = useState(false)
 
 	useEffect(() => {
-		async function loadCommunity() {
-			if (!id) return
-			setLoading(true)
-			try {
-				const data = await dataService.getCommunityById(id)
-				if (data) {
-					setCommunity(data)
-					setMemberCount(data.members)
-
-					// Check membership status
-					const { data: { user } } = await supabase.auth.getUser()
-					if (user) {
-						const memberProfile = await dataService.getCommunityMemberProfile(user.id, id)
-						setIsMember(!!memberProfile)
-					}
-				}
-			} catch (error) {
-				console.error("Failed to load community details:", error)
-			} finally {
-				setLoading(false)
-			}
-		}
 		loadCommunity()
-	}, [id])
 
-	const handleJoinLeave = async () => {
-		if (!community) return
-
-		setJoining(true)
-		try {
-			const { data: { user } } = await supabase.auth.getUser()
-			if (!user) {
-				setFeedbackDialog({ open: true, title: "Authentication Required", message: "Please sign in to join communities" })
+		// Keyboard shortcuts for community detail page
+		const handleKeyDown = (e: KeyboardEvent) => {
+			// Don't trigger shortcuts when typing in inputs
+			if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
 				return
 			}
 
-			if (isMember) {
-				setConfirmDialog({
-					open: true,
-					title: "Leave Community",
-					message: "Are you sure you want to leave this community? You will lose access to member-only discussions.",
-					onConfirm: async () => {
-						const response = await dataService.leaveCommunity(community.id, user.id)
-						if (response.success) {
-							setFeedbackDialog({ open: true, title: "Left Community", message: "You have left the community successfully." })
-							setIsMember(false)
-						} else {
-							setFeedbackDialog({ open: true, title: "Error", message: "Failed to leave community. Please try again." })
-						}
-						setConfirmDialog(prev => ({ ...prev, open: false }))
-					}
-				})
-			} else {
-				const response = await dataService.joinCommunity(community.id, user.id)
-				if (response.success) {
-					setIsMember(true)
-					setFeedbackDialog({ open: true, title: "Welcome!", message: "You have successfully joined the community." })
+			// "j" to join/leave community
+			if (e.key === 'j' && !e.ctrlKey && !e.metaKey) {
+				e.preventDefault()
+				handleJoinLeave()
+			}
+
+			// "e" to edit community (if admin)
+			if (e.key === 'e' && !e.ctrlKey && !e.metaKey && isAdmin) {
+				e.preventDefault()
+				setEditDialogOpen(true)
+			}
+
+			// "Escape" to close dialogs
+			if (e.key === 'Escape') {
+				if (leaveDialogOpen) {
+					setLeaveDialogOpen(false)
+				} else if (editDialogOpen) {
+					setEditDialogOpen(false)
+				} else if (deleteDialogOpen) {
+					setDeleteDialogOpen(false)
 				}
 			}
-		} catch (error: any) {
-			if (error?.code === "23505") {
-				setIsMember(true)
-				setFeedbackDialog({ open: true, title: "Already a Member", message: "You are already a member of this community." })
-			} else {
-				setFeedbackDialog({ open: true, title: "Error", message: "Failed to update membership. Please try again." })
+		}
+
+		document.addEventListener('keydown', handleKeyDown)
+
+		// Cleanup function
+		return () => {
+			document.removeEventListener('keydown', handleKeyDown)
+		}
+	}, [id, isAdmin, leaveDialogOpen, editDialogOpen, deleteDialogOpen])
+
+	// Clear saved data when navigating to a different community
+	useEffect(() => {
+		return () => {
+			if (id) {
+				// Check if we're navigating away and clear if it's a different community
+				const savedData = localStorage.getItem(COMMUNITY_CONSTANTS.LOCAL_STORAGE_KEYS.COMMUNITY_EDIT_DRAFT)
+				if (savedData) {
+					try {
+						const parsedData = JSON.parse(savedData)
+						// Clear if it's older than 1 hour (stale data)
+						if (Date.now() - parsedData.timestamp > 60 * 60 * 1000) {
+							localStorage.removeItem(COMMUNITY_CONSTANTS.LOCAL_STORAGE_KEYS.COMMUNITY_EDIT_DRAFT)
+						}
+					} catch (error) {
+						localStorage.removeItem(COMMUNITY_CONSTANTS.LOCAL_STORAGE_KEYS.COMMUNITY_EDIT_DRAFT)
+					}
+				}
 			}
+		}
+	}, [id])
+
+	// Load saved form data from localStorage
+	useEffect(() => {
+		if (community?.id) {
+			const savedData = localStorage.getItem(COMMUNITY_CONSTANTS.LOCAL_STORAGE_KEYS.COMMUNITY_EDIT_DRAFT)
+			if (savedData) {
+				try {
+					const parsedData = JSON.parse(savedData)
+					// Only use saved data if it's for the current community
+					if (parsedData.communityId === community.id) {
+						setEditData(parsedData.data)
+					}
+				} catch (error) {
+					console.error('Failed to parse saved edit data:', error)
+				}
+			}
+		}
+	}, [community?.id])
+
+	// Save form data to localStorage whenever it changes
+	useEffect(() => {
+		if (community?.id && Object.keys(editData).length > 0) {
+			const dataToSave = {
+				communityId: community.id,
+				data: editData,
+				timestamp: Date.now()
+			}
+			localStorage.setItem(COMMUNITY_CONSTANTS.LOCAL_STORAGE_KEYS.COMMUNITY_EDIT_DRAFT, JSON.stringify(dataToSave))
+		}
+	}, [editData, community?.id])
+
+	async function loadCommunity() {
+		if (!id) return
+		setLoading(true)
+		setError(null)
+		try {
+			const data = await withRetry(
+				() => dataService.getCommunityById(id),
+				3, // max attempts
+				1000, // base delay
+				(error) => {
+					const classification = classifyError(error)
+					return classification.retryable
+				}
+			)
+			if (data) {
+				setCommunity(data)
+				setMemberCount(data.members)
+				setEditData({
+					name: data.name,
+					desc: data.desc,
+					category: data.category,
+					type: data.type,
+					// Simple rule handling for now
+					rules: typeof data.rules === 'string' ? data.rules : JSON.stringify(data.rules || [])
+				})
+			} else {
+				setError("Community frequency not found.")
+			}
+		} catch (error: any) {
+			console.error("Failed to load community details:", error)
+			const classification = classifyError(error)
+			setError(classification.message)
 		} finally {
-			setJoining(false)
+			setLoading(false)
 		}
 	}
 
+	const handleJoinLeave = () => {
+		if (isMember) {
+			// Show confirmation dialog for leaving
+			setLeaveDialogOpen(true)
+		} else {
+			// Join directly (no confirmation needed)
+			performJoin()
+		}
+	}
+
+	const performJoin = async () => {
+		try {
+			await joinCommunity()
+			setFeedbackDialog({ open: true, title: "Welcome", message: "Uplink established. You are now an operative." })
+		} catch (error: any) {
+			const classification = classifyError(error)
+			setFeedbackDialog({ open: true, title: "Operation Failed", message: classification.message })
+		}
+	}
+
+	const performLeave = async () => {
+		try {
+			await leaveCommunity()
+			setLeaveDialogOpen(false)
+			setFeedbackDialog({ open: true, title: "Left Community", message: "You have disconnected from this frequency." })
+		} catch (error: any) {
+			const classification = classifyError(error)
+			setFeedbackDialog({ open: true, title: "Operation Failed", message: classification.message })
+		}
+	}
+
+	const handleUpdate = async () => {
+		if (!userId || !community) return
+		setSaving(true)
+		try {
+			const updated = await dataService.updateCommunity(community.id, editData, userId)
+			if (updated) {
+				setCommunity(updated)
+				setEditDialogOpen(false)
+				// Clear saved draft data since it was successfully saved
+				localStorage.removeItem(COMMUNITY_CONSTANTS.LOCAL_STORAGE_KEYS.COMMUNITY_EDIT_DRAFT)
+				setFeedbackDialog({ open: true, title: "Update Success", message: "Community parameters reconfigured." })
+			}
+		} catch (error: any) {
+			const classification = classifyError(error)
+			setFeedbackDialog({ open: true, title: "Update Failed", message: classification.message })
+		} finally {
+			setSaving(false)
+		}
+	}
+
+	const handleDelete = async () => {
+		if (!userId || !community) return
+		setSaving(true)
+		try {
+			await dataService.deleteCommunity(community.id, userId)
+			router.push('/communities')
+		} catch (error: any) {
+			const classification = classifyError(error)
+			setFeedbackDialog({ open: true, title: "Delete Failed", message: classification.message })
+			setSaving(false)
+		}
+	}
+
+	const handleImageUpdate = async (file: File, type: 'cover' | 'avatar') => {
+		if (!community || !userId) return
+		// Use a local loading state for image if needed, or reuse saving
+		// setSaving(true) // Reuse saving to disable other interactions? Or just silent update?
+		// User feedback is better.
+		try {
+			const url = await dataService.uploadCommunityImage(community.id, file, type)
+			if (url) {
+				const updates = type === 'cover' ? { coverImage: url } : { avatar: url }
+				const updatedCommunity = await dataService.updateCommunity(community.id, updates, userId)
+				if (updatedCommunity) {
+					setCommunity(updatedCommunity)
+					setFeedbackDialog({ open: true, title: "Visuals Updated", message: "Signal signatures re-calibrated." })
+				}
+			}
+		} catch (error) {
+			setFeedbackDialog({ open: true, title: "Upload Failed", message: "Transmission interrupted." })
+		}
+	}
 
 	if (loading) {
 		return (
@@ -124,13 +290,13 @@ export default function CommunityDetailPage() {
 		)
 	}
 
-	if (!community) {
+	if (error || !community) {
 		return (
 			<div className="flex flex-col min-h-screen bg-black text-white">
 				<TopNav />
-				<div className="flex-1 flex flex-col items-center justify-center gap-4">
-					<h1 className="text-3xl font-black text-zinc-500">Signal Lost</h1>
-					<Button onClick={() => router.push('/communities')} variant="outline" className="border-white/10 text-white hover:bg-white/5">
+				<div className="flex-1 flex flex-col items-center justify-center p-6">
+					<CommunityErrorState message={error || "Community not found"} onRetry={loadCommunity} />
+					<Button onClick={() => router.push('/communities')} variant="ghost" className="mt-4 text-zinc-500 hover:text-white">
 						<ArrowLeft className="mr-2 h-4 w-4" /> Return to Network
 					</Button>
 				</div>
@@ -138,19 +304,9 @@ export default function CommunityDetailPage() {
 		)
 	}
 
-	const StatCard = ({ icon: Icon, label, value }: { icon: any, label: string, value: string | number }) => (
-		<div className="flex flex-col items-center justify-center p-6 holographic-card rounded-2xl border-white/5 hover:border-teal-500/30 transition-all duration-500 group relative overflow-hidden">
-			<div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-			<div className="p-3 bg-white/5 rounded-xl mb-3 group-hover:scale-110 transition-transform border border-white/5">
-				<Icon className="h-5 w-5 text-teal-500" />
-			</div>
-			<div className="font-black text-3xl tracking-tighter text-white">{value}</div>
-			<div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1 group-hover:text-teal-400 transition-colors">{label}</div>
-		</div>
-	)
-
 	return (
 		<div className="dark flex flex-col min-h-screen bg-black text-white font-sans overflow-x-hidden selection:bg-teal-500/30">
+			<TooltipProvider>
 
 			{/* 🌌 Cosmic Background (Consistent) */}
 			<div className="fixed inset-0 z-0 pointer-events-none">
@@ -162,114 +318,60 @@ export default function CommunityDetailPage() {
 
 			<div className="relative z-10"><TopNav /></div>
 
-			{/* Immersive Hero Header */}
-			<div className="relative z-10 w-full animate-in fade-in duration-1000">
-				{/* 🖼️ High-Tech Cover */}
-				<div className="h-[350px] w-full relative overflow-hidden group">
-					<div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/50 to-black z-10" />
-
-					{/* Generative Grid Overlay */}
-					<div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-50" />
-
-					{/* Dynamic Background Element */}
-					<div className="absolute inset-0 bg-gradient-to-r from-teal-900/20 via-emerald-900/20 to-green-900/20 mix-blend-overlay" />
-
-					<Button
-						variant="ghost"
-						size="sm"
-						className="absolute top-6 left-6 gap-2 bg-black/40 backdrop-blur-md hover:bg-white/10 text-zinc-300 border border-white/10 transition-all z-20 rounded-full px-4"
-						onClick={() => router.push('/communities')}
-					>
-						<ArrowLeft className="h-4 w-4" /> Abort
-					</Button>
-				</div>
-
-				<div className="max-w-[1400px] mx-auto px-6 md:px-12 -mt-32 relative z-20">
-					<div className="flex flex-col md:flex-row gap-10 items-end">
-						{/* 🧬 Identity Module */}
-						<div className="relative group">
-							{/* Hexagon/Circle Tech Frame */}
-							<div className="absolute inset-0 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-3xl blur-lg opacity-40 group-hover:opacity-60 transition-opacity duration-500 animate-pulse" />
-							<Avatar className="h-40 w-40 md:h-52 md:w-52 border-4 border-black shadow-2xl rounded-3xl relative z-10 bg-black">
-								<AvatarFallback className="bg-zinc-900 text-zinc-500 text-5xl font-black rounded-3xl">
-									{community.name?.[0]}
-								</AvatarFallback>
-							</Avatar>
-							<div className="absolute -bottom-3 -right-3 z-20 bg-black border border-white/10 rounded-full p-2 shadow-xl">
-								{community.type === 'Private' ? <Lock className="h-5 w-5 text-zinc-500" /> : <Globe className="h-5 w-5 text-green-400" />}
-							</div>
-						</div>
-
-						{/* 📝 Header Content */}
-						<div className="flex-1 pb-4 space-y-6">
-							<div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-								<div>
-									<div className="flex gap-2 mb-3">
-										<Badge variant="outline" className="bg-teal-500/10 text-teal-400 border-teal-500/20 backdrop-blur-md px-3 py-1 uppercase tracking-widest text-[10px]">
-											{community.category}
-										</Badge>
-										<Badge variant="outline" className={`backdrop-blur-md border-white/10 px-3 py-1 uppercase tracking-widest text-[10px] ${community.activityLevel === 'High' ? 'bg-green-500/10 text-green-400' : 'bg-zinc-800/50 text-zinc-400'}`}>
-											<Activity className="h-3 w-3 mr-1 inline" /> {community.activityLevel} Activity
-										</Badge>
-									</div>
-									<h1 className="text-5xl md:text-7xl font-black tracking-tighter text-white drop-shadow-xl">{community.name}</h1>
-								</div>
-
-								<div className="flex gap-3">
-									<Button variant="outline" className="border-white/10 bg-black/50 hover:bg-white/10 text-white backdrop-blur-md h-12 uppercase tracking-wide text-xs font-bold">
-										<Share2 className="h-4 w-4 mr-2" /> Share
-									</Button>
-									<Button
-										className={`${isMember
-											? "bg-zinc-900 text-zinc-400 border border-white/10 hover:bg-zinc-800"
-											: "bg-white text-black hover:bg-zinc-200 shadow-[0_0_20px_rgba(255,255,255,0.2)]"} 
-                                 font-black px-8 h-12 transition-all uppercase tracking-wider text-xs hover:scale-105`}
-										onClick={handleJoinLeave}
-										disabled={joining}
-									>
-										{joining ? (
-											<Loader2 className="h-4 w-4 animate-spin mr-2" />
-										) : isMember ? (
-											"Member Settings"
-										) : (
-											<>Initialize Link <Zap className="ml-2 h-4 w-4" /></>
-										)}
-									</Button>
-								</div>
-							</div>
-
-							<p className="text-zinc-400 text-lg max-w-3xl leading-relaxed font-light border-l-2 border-teal-500/30 pl-6">
-								{community.desc}
-							</p>
-						</div>
-					</div>
-				</div>
-			</div>
+			<CommunityHeader
+				community={community}
+				isMember={isMember}
+				isAdmin={isAdmin}
+				joining={joining || membershipLoading} // Disable if checking or joining
+				onJoin={handleJoinLeave}
+				onLeave={handleJoinLeave}
+				onEdit={() => setEditDialogOpen(true)}
+				onDelete={() => setDeleteDialogOpen(true)}
+				onUpdateCover={(file) => handleImageUpdate(file, 'cover')}
+				onUpdateAvatar={(file) => handleImageUpdate(file, 'avatar')}
+			/>
 
 			<main className="flex-1 p-6 md:p-12 max-w-[1400px] mx-auto w-full space-y-12 relative z-10">
 
 				{/* 📊 Data Grid */}
-				<div className="grid grid-cols-2 md:grid-cols-4 gap-6 animate-in slide-in-from-bottom-8 duration-1000 delay-100">
-					<StatCard icon={Users} label="Operatives" value={memberCount} />
-					<StatCard icon={MessageCircle} label="Comms" value={community.discussionCount || 0} />
-					<StatCard icon={Trophy} label="Active Conflicts" value={community.integrations?.gymRoomsActive || 0} />
-					<StatCard icon={CalendarDays} label="Events" value={community.upcomingEvents || 0} />
-				</div>
+				<CommunityStats
+					memberCount={memberCount}
+					discussionCount={community.discussionCount || 0}
+					activeConflicts={community.integrations?.gymRoomsActive || 0}
+					eventCount={community.upcomingEvents || 0}
+				/>
 
 				<Tabs defaultValue="overview" className="w-full">
+
 					<div className="flex justify-start mb-8 border-b border-white/10">
-						<TabsList className="bg-transparent p-0 w-full max-w-2xl flex justify-start gap-8">
+						<TabsList className="bg-transparent p-0 w-full max-w-2xl flex justify-start gap-8" role="tablist" aria-label="Community sections">
+							<TabsTrigger
+								value="war-room"
+								className="rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 text-zinc-500 hover:text-white data-[state=active]:border-teal-500 data-[state=active]:text-teal-500 data-[state=active]:bg-transparent transition-all capitalize font-mono text-sm tracking-wider flex items-center gap-2 focus:ring-2 focus:ring-teal-500/50 focus:ring-offset-2 focus:ring-offset-black"
+								aria-label="War Room - live chat"
+							>
+								<span className="relative flex h-2 w-2" aria-hidden="true">
+									<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+									<span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
+								</span>
+								War Room
+							</TabsTrigger>
 							{["overview", "discussions", "events", "members"].map(tab => (
 								<TabsTrigger
 									key={tab}
 									value={tab}
-									className="rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 text-zinc-500 hover:text-white data-[state=active]:border-teal-500 data-[state=active]:text-teal-500 data-[state=active]:bg-transparent transition-all capitalize font-mono text-sm tracking-wider"
+									className="rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 text-zinc-500 hover:text-white data-[state=active]:border-teal-500 data-[state=active]:text-teal-500 data-[state=active]:bg-transparent transition-all capitalize font-mono text-sm tracking-wider focus:ring-2 focus:ring-teal-500/50 focus:ring-offset-2 focus:ring-offset-black"
+									aria-label={`${tab} section`}
 								>
 									{tab}
 								</TabsTrigger>
 							))}
 						</TabsList>
 					</div>
+
+					<TabsContent value="war-room" className="mt-6 animate-in fade-in-50 duration-500">
+						<CommunityChat communityId={id} currentUserId={userId!} isMember={isMember} />
+					</TabsContent>
 
 					<TabsContent value="overview" className="space-y-6 focus-visible:outline-none animate-in fade-in-50 duration-500">
 						<div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -371,6 +473,72 @@ export default function CommunityDetailPage() {
 				</Tabs>
 			</main>
 
+			{/* Edit Dialog */}
+			<Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+				<DialogContent className="bg-zinc-950 border-white/10 text-white sm:max-w-xl">
+					<DialogHeader>
+						<DialogTitle>Reconfigure Tribe Parameters</DialogTitle>
+						<DialogDescription>Update community frequency settings.</DialogDescription>
+					</DialogHeader>
+					<div className="space-y-4 pt-4">
+						<div className="space-y-2">
+							<Label>Name</Label>
+							<Input value={editData.name || ''} onChange={e => setEditData({ ...editData, name: e.target.value })} className="bg-zinc-900 border-white/10" />
+						</div>
+						<div className="space-y-2">
+							<Label>Description</Label>
+							<Textarea value={editData.desc || ''} onChange={e => setEditData({ ...editData, desc: e.target.value })} className="bg-zinc-900 border-white/10" />
+						</div>
+						<div className="space-y-2">
+							<Label>Category</Label>
+							<Input value={editData.category || ''} onChange={e => setEditData({ ...editData, category: e.target.value })} className="bg-zinc-900 border-white/10" />
+						</div>
+					</div>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setEditDialogOpen(false)} className="border-white/10">Cancel</Button>
+						<Button onClick={handleUpdate} disabled={saving} className="bg-teal-600 hover:bg-teal-700">
+							{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Configurations"}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+
+			{/* Delete Confirmation Dialog */}
+			<Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+				<DialogContent className="bg-zinc-950 border-white/10 text-white">
+					<DialogHeader>
+						<DialogTitle className="text-red-500">Dissolve Tribe?</DialogTitle>
+						<DialogDescription className="text-zinc-400">
+							This action is irreversible. All data, discussions, and links associated with this community will be permanently erased.
+						</DialogDescription>
+					</DialogHeader>
+					<div className="flex justify-end gap-2 mt-4">
+						<Button variant="outline" onClick={() => setDeleteDialogOpen(false)} className="border-white/10">Abort</Button>
+						<Button variant="destructive" onClick={handleDelete} disabled={saving}>
+							{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirm Dissolution"}
+						</Button>
+					</div>
+				</DialogContent>
+			</Dialog>
+
+			{/* Leave Community Confirmation Dialog */}
+			<Dialog open={leaveDialogOpen} onOpenChange={setLeaveDialogOpen}>
+				<DialogContent className="bg-zinc-950 border-white/10 text-white">
+					<DialogHeader>
+						<DialogTitle className="text-yellow-500">Leave Tribe?</DialogTitle>
+						<DialogDescription className="text-zinc-400">
+							Are you sure you want to disconnect from this community? You can rejoin at any time, but you will lose access to ongoing discussions and events.
+						</DialogDescription>
+					</DialogHeader>
+					<div className="flex justify-end gap-2 mt-4">
+						<Button variant="outline" onClick={() => setLeaveDialogOpen(false)} className="border-white/10">Cancel</Button>
+						<Button variant="destructive" onClick={performLeave} disabled={joining}>
+							{joining ? <Loader2 className="h-4 w-4 animate-spin" /> : "Leave Tribe"}
+						</Button>
+					</div>
+				</DialogContent>
+			</Dialog>
+
 			{/* Feedback Dialog */}
 			<Dialog open={feedbackDialog.open} onOpenChange={(open) => setFeedbackDialog(prev => ({ ...prev, open }))}>
 				<DialogContent className="glass-card border-white/10 bg-black text-white">
@@ -383,20 +551,7 @@ export default function CommunityDetailPage() {
 					</div>
 				</DialogContent>
 			</Dialog>
-
-			{/* Confirmation Dialog */}
-			<Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog(prev => ({ ...prev, open }))}>
-				<DialogContent className="glass-card border-white/10 bg-black text-white">
-					<DialogHeader>
-						<DialogTitle>{confirmDialog.title}</DialogTitle>
-						<DialogDescription className="text-zinc-400">{confirmDialog.message}</DialogDescription>
-					</DialogHeader>
-					<div className="flex justify-end gap-2">
-						<Button variant="outline" onClick={() => setConfirmDialog(prev => ({ ...prev, open: false }))} className="border-white/10 hover:bg-white/10">Cancel</Button>
-						<Button variant="destructive" onClick={confirmDialog.onConfirm}>Confirm</Button>
-					</div>
-				</DialogContent>
-			</Dialog>
+			</TooltipProvider>
 		</div>
 	)
 }

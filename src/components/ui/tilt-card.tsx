@@ -7,9 +7,18 @@ interface TiltCardProps extends React.HTMLAttributes<HTMLDivElement> {
 	children: React.ReactNode
 	className?: string
 	spotlightColor?: string
+	enableGlitch?: boolean
+	glitchColor?: string
 }
 
-export function TiltCard({ children, className, spotlightColor = "rgba(6,182,212,0.15)", ...props }: TiltCardProps) {
+export function TiltCard({
+	children,
+	className,
+	spotlightColor = "rgba(6,182,212,0.15)",
+	enableGlitch = false,
+	glitchColor = "rgba(6,182,212,0.5)",
+	...props
+}: TiltCardProps) {
 	const divRef = useRef<HTMLDivElement>(null)
 	const [position, setPosition] = useState({ x: 0, y: 0 })
 	const [opacity, setOpacity] = useState(0)
@@ -45,6 +54,9 @@ export function TiltCard({ children, className, spotlightColor = "rgba(6,182,212
 		setRotation({ x: 0, y: 0 })
 	}
 
+	// Derived hover state
+	const isHovered = opacity > 0
+
 	return (
 		<div
 			ref={divRef}
@@ -52,7 +64,7 @@ export function TiltCard({ children, className, spotlightColor = "rgba(6,182,212
 			onMouseEnter={handleMouseEnter}
 			onMouseLeave={handleMouseLeave}
 			className={cn(
-				"relative overflow-hidden rounded-3xl border border-white/5 bg-black/40 backdrop-blur-md transition-all duration-200 ease-out",
+				"relative overflow-hidden rounded-3xl border border-white/5 bg-black/40 backdrop-blur-md transition-all duration-200 ease-out group",
 				className
 			)}
 			style={{
@@ -67,6 +79,33 @@ export function TiltCard({ children, className, spotlightColor = "rgba(6,182,212
 					background: `radial-gradient(600px circle at ${position.x}px ${position.y}px, ${spotlightColor}, transparent 40%)`,
 				}}
 			/>
+
+			{/* Optional Glitch Overlay */}
+			{enableGlitch && (
+				<>
+					<div
+						className={cn(
+							"absolute inset-0 bg-transparent translate-x-1 opacity-0 transition-opacity duration-100 pointer-events-none z-0",
+							isHovered && "animate-glitch-1 opacity-100"
+						)}
+						style={{
+							textShadow: `2px 0 ${glitchColor}, -2px 0 #ea215a`,
+							backgroundColor: isHovered ? `${glitchColor}10` : "transparent",
+						}}
+					/>
+					<div
+						className={cn(
+							"absolute inset-0 bg-transparent -translate-x-1 opacity-0 transition-opacity duration-100 pointer-events-none z-0",
+							isHovered && "animate-glitch-2 opacity-100"
+						)}
+						style={{
+							backgroundColor: isHovered ? `${glitchColor}10` : "transparent",
+						}}
+					/>
+					<div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_50%,rgba(0,0,0,0.5)_50%)] bg-[size:100%_4px] opacity-0 group-hover:opacity-20 transition-opacity pointer-events-none z-20" />
+				</>
+			)}
+
 			<div className="relative z-10 h-full">{children}</div>
 		</div>
 	)

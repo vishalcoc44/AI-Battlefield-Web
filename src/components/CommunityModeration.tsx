@@ -22,6 +22,7 @@ import {
   Loader2
 } from "lucide-react"
 import { dataService } from "@/lib/data-service"
+import { sanitizeText } from "@/lib/utils"
 
 interface ModerationItem {
   id: string
@@ -200,7 +201,7 @@ export function CommunityModeration({ communityId, showHeader = true }: Communit
                         </div>
 
                         <p className="text-sm text-muted-foreground mb-2">
-                          {item.content}
+                          {sanitizeText(item.content)}
                         </p>
 
                         <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">

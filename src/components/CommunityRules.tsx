@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ScrollText, Shield, AlertTriangle } from "lucide-react"
 import { dataService, type Community } from "@/lib/data-service"
+import { sanitizeText } from "@/lib/utils"
 
 interface CommunityRulesProps {
   community: Community
@@ -71,7 +72,7 @@ export function CommunityRules({ community, showHeader = true }: CommunityRulesP
                 </span>
               </div>
               <p className="text-sm leading-relaxed text-muted-foreground flex-1">
-                {rule.trim()}
+                {sanitizeText(rule.trim())}
               </p>
             </div>
           ))}

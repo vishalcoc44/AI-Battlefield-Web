@@ -75,14 +75,45 @@ export function CosmicBackground({ theme = 'emerald' }: CosmicBackgroundProps) {
 
 	const current = colors[theme];
 
-	// Special rendering for landing page to support multiple orbs
+	// Special rendering for landing page to support multiple orbs + parallax
 	if (theme === 'landing') {
+		const [mousePosition, setMousePosition] = React.useState({ x: 0, y: 0 });
+
+		React.useEffect(() => {
+			const handleMouseMove = (event: MouseEvent) => {
+				setMousePosition({
+					x: (event.clientX / window.innerWidth) * 2 - 1,
+					y: (event.clientY / window.innerHeight) * 2 - 1
+				});
+			};
+
+			window.addEventListener('mousemove', handleMouseMove);
+			return () => window.removeEventListener('mousemove', handleMouseMove);
+		}, []);
+
 		return (
-			<div className="fixed inset-0 z-0 pointer-events-none">
+			<div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
 				<div className={`absolute inset-0 bg-gradient-to-b ${current.gradientFrom} ${current.gradientVia} ${current.gradientTo}`} />
-				<div className={`absolute inset-0 ${current.grid}`} />
-				<div className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] bg-blue-900/20 rounded-full blur-[150px] animate-slow-spin mix-blend-screen" />
-				<div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] bg-orange-600/10 rounded-full blur-[150px] animate-slow-spin animation-delay-2000 mix-blend-screen" />
+
+				{/* Grid - Slight movement */}
+				<div
+					className={`absolute inset-0 ${current.grid}`}
+					style={{ transform: `translate(${mousePosition.x * -10}px, ${mousePosition.y * -10}px)` }}
+				/>
+
+				{/* Blue Orb - Medium movement */}
+				<div
+					className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] bg-blue-900/20 rounded-full blur-[150px] animate-slow-spin mix-blend-screen transition-transform duration-100 ease-out"
+					style={{ transform: `translate(${mousePosition.x * -30}px, ${mousePosition.y * -30}px)` }}
+				/>
+
+				{/* Orange Orb - Fast reverse movement for depth */}
+				<div
+					className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] bg-orange-600/10 rounded-full blur-[150px] animate-slow-spin animation-delay-2000 mix-blend-screen transition-transform duration-100 ease-out"
+					style={{ transform: `translate(${mousePosition.x * 40}px, ${mousePosition.y * 40}px)` }}
+				/>
+
+				{/* Noise Overlay */}
 				<div className="bg-noise md:opacity-[0.15]" />
 			</div>
 		);

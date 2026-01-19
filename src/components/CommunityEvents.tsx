@@ -15,6 +15,10 @@ import {
   Tag
 } from "lucide-react"
 import { dataService, type CommunityEvent } from "@/lib/data-service"
+import { COMMUNITY_CONSTANTS } from "@/lib/constants/communities"
+import { supabase } from "@/lib/supabase"
+import { showToast } from "@/lib/toast"
+import { sanitizeText } from "@/lib/utils"
 
 interface CommunityEventsProps {
   communityId?: string
@@ -24,7 +28,7 @@ interface CommunityEventsProps {
 
 export function CommunityEvents({
   communityId,
-  limit = 10,
+  limit = COMMUNITY_CONSTANTS.EVENTS_LIMIT,
   showHeader = true
 }: CommunityEventsProps) {
   const [events, setEvents] = useState<CommunityEvent[]>([])
@@ -51,7 +55,14 @@ export function CommunityEvents({
   const handleRSVP = async (eventId: string) => {
     setRsvpLoading(eventId)
     try {
-      const success = await dataService.rsvpToEvent(eventId, 'current-user')
+      const { data: { user } } = await supabase.auth.getUser()
+      const userId = user?.id
+      if (!userId) {
+        showToast.error("Authentication Required", "Please sign in to RSVP to events.")
+        return
+      }
+
+      const success = await dataService.rsvpToEvent(eventId, userId)
       if (success) {
         // Update the event's attendee count
         setEvents(prev => prev.map(event =>
@@ -59,6 +70,7 @@ export function CommunityEvents({
             ? { ...event, currentParticipants: event.currentParticipants + 1 }
             : event
         ))
+        showToast.success("RSVP Confirmed", "You have successfully registered for this event!")
       }
     } catch (error) {
       console.error("Failed to RSVP:", error)
@@ -141,7 +153,7 @@ export function CommunityEvents({
                         {event.type}
                       </Badge>
                       <h3 className="font-semibold text-lg leading-tight mb-1">
-                        {event.title}
+                        {sanitizeText(event.title)}
                       </h3>
                       <p className="text-sm text-muted-foreground">
                         Organized by {event.organizer.name} in {event.communityName}
@@ -174,7 +186,7 @@ export function CommunityEvents({
 
                   {/* Description */}
                   <p className="text-sm text-muted-foreground line-clamp-2">
-                    {event.description}
+                    {sanitizeText(event.description)}
                   </p>
 
                   {/* Tags */}

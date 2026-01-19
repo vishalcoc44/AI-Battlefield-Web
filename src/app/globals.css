@@ -142,12 +142,138 @@
   --sidebar-ring: oklch(0.65 0.25 270);
 }
 
+/* Premium Easing */
+.ease-out-quint {
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Scroll Reveal Utilities */
+.reveal-hidden {
+  opacity: 0;
+  filter: blur(10px);
+  transform: translateY(30px) scale(0.95);
+  will-change: opacity, transform, filter;
+}
+
+.reveal-visible {
+  opacity: 1;
+  filter: blur(0);
+  transform: translateY(0) scale(1);
+  transition: opacity 1s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 1s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Variants */
+.reveal-left {
+  transform: translateX(-50px);
+}
+
+.reveal-right {
+  transform: translateX(50px);
+}
+
+/* Utility for no blur */
+.reveal-no-blur {
+  filter: none;
+}
+
+/* Glitch Animations */
+@keyframes glitch-1 {
+  0% {
+    clip-path: inset(20% 0 80% 0);
+    transform: translate(-2px, 1px);
+  }
+
+  20% {
+    clip-path: inset(60% 0 10% 0);
+    transform: translate(2px, -1px);
+  }
+
+  40% {
+    clip-path: inset(40% 0 50% 0);
+    transform: translate(-2px, 2px);
+  }
+
+  60% {
+    clip-path: inset(80% 0 5% 0);
+    transform: translate(2px, -2px);
+  }
+
+  80% {
+    clip-path: inset(10% 0 70% 0);
+    transform: translate(-1px, 1px);
+  }
+
+  100% {
+    clip-path: inset(30% 0 50% 0);
+    transform: translate(1px, -1px);
+  }
+}
+
+@keyframes glitch-2 {
+  0% {
+    clip-path: inset(10% 0 60% 0);
+    transform: translate(2px, -1px);
+  }
+
+  20% {
+    clip-path: inset(80% 0 5% 0);
+    transform: translate(-2px, 2px);
+  }
+
+  40% {
+    clip-path: inset(30% 0 20% 0);
+    transform: translate(2px, 1px);
+  }
+
+  60% {
+    clip-path: inset(15% 0 80% 0);
+    transform: translate(-1px, -2px);
+  }
+
+  80% {
+    clip-path: inset(55% 0 10% 0);
+    transform: translate(2px, 2px);
+  }
+
+  100% {
+    clip-path: inset(40% 0 30% 0);
+    transform: translate(-2px, 1px);
+  }
+}
+
+.animate-glitch-1 {
+  animation: glitch-1 2.5s infinite linear alternate-reverse;
+}
+
+.animate-glitch-2 {
+  animation: glitch-2 2.5s infinite linear alternate-reverse;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
 
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  *::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  * {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+  }
+
+  html,
   body {
+    background: #000 !important;
+    /* Force black to prevent white flash during transitions */
+    overflow-x: hidden;
     @apply bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary;
   }
 }

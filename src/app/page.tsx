@@ -8,13 +8,24 @@ import { Badge } from "@/components/ui/badge"
 import { TiltCard } from "@/components/ui/tilt-card"
 import { TextScramble } from "@/components/ui/text-scramble"
 import { MagneticButton } from "@/components/ui/magnetic-button"
+import { ScrollReveal } from "@/components/ui/scroll-reveal"
+import { HeroHologram } from "@/components/ui/hero-hologram"
+import { CyberSeparator } from "@/components/ui/cyber-separator"
+import { Footer } from "@/components/ui/footer"
 import { ArrowRight, Brain, Shield, Zap, Users, Trophy, Globe, Sword, Play, Terminal, Cpu, Network, Activity } from "lucide-react"
 
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false)
+  const [scrollProgress, setScrollProgress] = useState(0)
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50)
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50)
+      const totalScroll = document.documentElement.scrollTop
+      const windowHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight
+      const scroll = `${totalScroll / windowHeight}`
+      setScrollProgress(Number(scroll))
+    }
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
@@ -25,12 +36,15 @@ export default function LandingPage() {
       {/* 🌌 Cosmic Background System */}
       <CosmicBackground theme="landing" />
 
+      {/* 📜 Scroll Progress Indicator */}
+      <div className="fixed top-0 left-0 h-1 bg-gradient-to-r from-cyan-500 to-blue-600 z-[100] transition-all duration-100 ease-out" style={{ width: `${scrollProgress * 100}%` }} />
+
       {/* 🛸 Navbar (Dynamic Floating Capsule v3) */}
       <header
         className={`fixed left-1/2 -translate-x-1/2 z-50 flex items-center justify-between px-4 transition-all duration-700 cubic-bezier(0.16, 1, 0.3, 1) ${scrolled
-          ? "top-4 w-[90%] max-w-3xl h-12 bg-black/60 border border-white/10 shadow-[0_0_20px_rgba(0,0,0,0.5)] backdrop-blur-xl rounded-full"
-          : "top-8 w-[95%] max-w-5xl h-20 bg-black/20 border border-white/5 shadow-none backdrop-blur-md rounded-[2rem]"
-          } group/header hover:bg-black/80 hover:border-white/20`}
+          ? "top-4 w-[90%] max-w-3xl h-12 bg-white/15 border border-white/20 shadow-[0_8px_32px_-8px_rgba(255,255,255,0.2)] backdrop-blur-3xl rounded-full"
+          : "top-8 w-[95%] max-w-5xl h-20 bg-white/5 border border-white/10 shadow-none backdrop-blur-md rounded-[2rem]"
+          } group/header`}
       >
         <Link className="flex items-center gap-4 group pl-2" href="#">
           {/* Logo Mark with Pulse */}
@@ -47,7 +61,7 @@ export default function LandingPage() {
 
         {/* Dynamic Navigation */}
         <nav className={`hidden md:flex items-center p-1 rounded-full transition-all duration-500 ${scrolled ? "bg-transparent border-0" : "bg-white/5 border border-white/5 backdrop-blur-sm"}`}>
-          {['Features', 'Manifesto', 'Pricing'].map((item) => (
+          {['Features', 'Manifesto'].map((item) => (
             <Link key={item} className="relative px-5 py-2 rounded-full text-[10px] font-bold text-zinc-400 hover:text-white transition-all uppercase tracking-widest overflow-hidden group/nav-item" href={`#${item.toLowerCase()}`}>
               <span className="relative z-10">{item}</span>
               <div className="absolute inset-0 bg-white/10 scale-0 group-hover/nav-item:scale-100 transition-transform duration-300 rounded-full" />
@@ -78,6 +92,8 @@ export default function LandingPage() {
         {/* 💥 Hero Section: Liquid Metal Typography */}
         <section className="w-full min-h-[90vh] flex flex-col items-center justify-center relative perspective-1000 px-4 mt-4">
 
+          <HeroHologram />
+
           {/* Ambient Glow */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[400px] bg-blue-900/10 rounded-full blur-[150px] -z-10 opacity-60 animate-pulse mix-blend-screen" />
 
@@ -92,50 +108,56 @@ export default function LandingPage() {
             </div>
 
             {/* Main Headline with Scramble Effect */}
-            <div className="relative group perspective-1000">
-              <h1 className="text-5xl sm:text-7xl md:text-9xl font-black tracking-tighter leading-[0.85] text-transparent bg-clip-text bg-gradient-to-b from-white via-zinc-200 to-zinc-600 animate-in zoom-in-95 duration-1000 delay-100 drop-shadow-2xl select-none z-10 relative mix-blend-overlay">
-                <TextScramble text="DIALECTIC" /> <br />
-                <TextScramble text="WARFARE" delay={500} />
-              </h1>
-              {/* Ghost text for glow */}
-              <h1 className="absolute inset-0 text-5xl sm:text-7xl md:text-9xl font-black tracking-tighter leading-[0.85] text-transparent bg-clip-text bg-gradient-to-b from-cyan-500/20 via-blue-500/10 to-transparent blur-3xl z-0 pointer-events-none select-none">
-                DIALECTIC<br />WARFARE
-              </h1>
-            </div>
+            <ScrollReveal variant="blur-in" duration={1500}>
+              <div className="relative group perspective-1000">
+                <h1 className="text-5xl sm:text-7xl md:text-9xl font-black tracking-tighter leading-[0.85] text-transparent bg-clip-text bg-gradient-to-b from-white via-zinc-200 to-zinc-600 animate-in zoom-in-95 duration-1000 delay-100 drop-shadow-2xl select-none z-10 relative mix-blend-overlay">
+                  <TextScramble text="DIALECTIC" /> <br />
+                  <TextScramble text="WARFARE" delay={500} />
+                </h1>
+                {/* Ghost text for glow */}
+                <h1 className="absolute inset-0 text-5xl sm:text-7xl md:text-9xl font-black tracking-tighter leading-[0.85] text-transparent bg-clip-text bg-gradient-to-b from-cyan-500/20 via-blue-500/10 to-transparent blur-3xl z-0 pointer-events-none select-none">
+                  DIALECTIC<br />WARFARE
+                </h1>
+              </div>
+            </ScrollReveal>
 
             {/* Subheadline: Terminal Style */}
-            <div className="max-w-2xl bg-black/40 backdrop-blur-sm border border-white/5 p-6 rounded-2xl relative overflow-hidden group hover:border-white/10 transition-colors animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300 mx-4">
-              <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <p className="text-zinc-400 md:text-lg font-mono leading-relaxed text-left">
-                <span className="text-cyan-500 mr-2">$</span>
-                <span className="text-zinc-200">calibrating_worldview...</span>
-                <span className="inline-block w-2.5 h-4 bg-cyan-500 animate-pulse ml-2 align-middle" />
-                <br />
-                <span className="text-zinc-500 text-sm mt-2 block pl-5 opacity-80">
-                  &gt; Targets acquired: Cognitive Biases, Logical Fallacies. <br />
-                  &gt; Protocol: High-stakes cognitive arena engaged.
-                </span>
-              </p>
-            </div>
+            <ScrollReveal variant="fade-up" delay={400} duration={1000}>
+              <div className="max-w-2xl mx-auto bg-black/40 backdrop-blur-sm border border-white/5 p-6 rounded-2xl relative overflow-hidden group hover:border-white/10 transition-colors text-left">
+                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <p className="text-zinc-400 md:text-lg font-mono leading-relaxed">
+                  <span className="text-cyan-500 mr-2">$</span>
+                  <span className="text-zinc-200">calibrating_worldview...</span>
+                  <span className="inline-block w-2.5 h-4 bg-cyan-500 animate-pulse ml-2 align-middle" />
+                  <br />
+                  <span className="text-zinc-500 text-sm mt-2 block pl-5 opacity-80">
+                    &gt; Targets acquired: Cognitive Biases, Logical Fallacies. <br />
+                    &gt; Protocol: High-stakes cognitive arena engaged.
+                  </span>
+                </p>
+              </div>
+            </ScrollReveal>
 
             {/* Advanced CTAs with Magnetic Effect */}
-            <div className="flex flex-col sm:flex-row items-center gap-6 mt-4 animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-500">
-              <MagneticButton>
-                <Link href="/auth">
-                  <Button className="h-16 px-12 rounded-full bg-white text-black hover:bg-zinc-100 font-extrabold text-sm uppercase tracking-[0.2em] shadow-[0_0_60px_-15px_rgba(255,255,255,0.5)] transition-all hover:scale-105 hover:-translate-y-1 active:scale-95 border-2 border-transparent hover:border-cyan-200/50 group relative overflow-hidden">
-                    <span className="relative z-10 flex items-center gap-2">Initialize Sequence</span>
-                    <div className="absolute inset-0 bg-gradient-to-tr from-cyan-200/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  </Button>
-                </Link>
-              </MagneticButton>
-              <MagneticButton strength={0.2}>
-                <Link href="#demo">
-                  <Button variant="outline" className="h-16 px-10 rounded-full border-white/10 bg-white/5 text-zinc-300 hover:text-white hover:bg-white/10 font-bold text-sm uppercase tracking-[0.2em] backdrop-blur-xl transition-all hover:scale-105 active:scale-95 group relative overflow-hidden">
-                    <Play className="mr-3 h-4 w-4 fill-white/20 group-hover:fill-white transition-colors" /> Demo Mode
-                  </Button>
-                </Link>
-              </MagneticButton>
-            </div>
+            <ScrollReveal variant="fade-up" delay={600} duration={1000}>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-4">
+                <MagneticButton>
+                  <Link href="/auth">
+                    <Button className="h-16 px-12 rounded-full bg-white text-black hover:bg-zinc-100 font-extrabold text-sm uppercase tracking-[0.2em] shadow-[0_0_60px_-15px_rgba(255,255,255,0.5)] transition-all hover:scale-105 hover:-translate-y-1 active:scale-95 border-2 border-transparent hover:border-cyan-200/50 group relative overflow-hidden">
+                      <span className="relative z-10 flex items-center gap-2">Initialize Sequence</span>
+                      <div className="absolute inset-0 bg-gradient-to-tr from-cyan-200/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </Button>
+                  </Link>
+                </MagneticButton>
+                <MagneticButton strength={0.2}>
+                  <Link href="#demo">
+                    <Button variant="outline" className="h-16 px-10 rounded-full border-white/10 bg-white/5 text-zinc-300 hover:text-white hover:bg-white/10 font-bold text-sm uppercase tracking-[0.2em] backdrop-blur-xl transition-all hover:scale-105 active:scale-95 group relative overflow-hidden">
+                      <Play className="mr-3 h-4 w-4 fill-white/20 group-hover:fill-white transition-colors" /> Demo Mode
+                    </Button>
+                  </Link>
+                </MagneticButton>
+              </div>
+            </ScrollReveal>
 
             {/* 🛑 Live Intel Stream (New) */}
             <div className="w-full max-w-4xl mt-16 border-y border-white/5 bg-black/20 backdrop-blur-sm overflow-hidden relative">
@@ -177,8 +199,10 @@ export default function LandingPage() {
 
         </section>
 
-        {/* 🌍 Global Network Visualization (New) */}
-        <section className="w-full py-20 relative z-20 border-b border-white/5 bg-black/40 overflow-hidden">
+        <CyberSeparator />
+
+        {/* 🌍 Global Network Visualization */}
+        <section className="w-full py-20 relative z-20 bg-black/40 overflow-hidden">
           {/* Decorative Side Elements */}
           <div className="absolute left-4 top-1/2 -translate-y-1/2 hidden xl:block space-y-2 opacity-20">
             <div className="w-[1px] h-24 bg-blue-500/50 mx-auto" />
@@ -193,7 +217,7 @@ export default function LandingPage() {
             <div className="flex flex-col md:flex-row items-center justify-between gap-12">
 
               {/* Text Side */}
-              <div className="max-w-xl space-y-6">
+              <ScrollReveal variant="slide-right" className="max-w-xl space-y-6">
                 <Badge variant="outline" className="border-blue-500/30 text-blue-400 bg-blue-500/5 font-mono text-[10px] tracking-widest uppercase px-3 py-1">
                   Global Operations
                 </Badge>
@@ -219,10 +243,10 @@ export default function LandingPage() {
                     </div>
                   ))}
                 </div>
-              </div>
+              </ScrollReveal>
 
               {/* Map Visual Side */}
-              <div className="relative w-full max-w-lg aspect-video bg-black/50 rounded-2xl border border-white/10 overflow-hidden group">
+              <ScrollReveal variant="slide-left" delay={200} className="relative w-full max-w-lg aspect-video bg-black/50 rounded-2xl border border-white/10 overflow-hidden group">
                 {/* Grid Background */}
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f46e520_1px,transparent_1px),linear-gradient(to_bottom,#4f46e520_1px,transparent_1px)] bg-[size:24px_24px] opacity-20" />
 
@@ -242,11 +266,13 @@ export default function LandingPage() {
                 <div className="absolute bottom-4 left-4 font-mono text-[10px] text-zinc-500">
                   SECTOR: NORTH_AMERICA // STATUS: ACTIVE
                 </div>
-              </div>
+              </ScrollReveal>
 
             </div>
           </div>
         </section>
+
+        <CyberSeparator />
 
         {/* ⚡ Live Debate Simulation (New) */}
         <section className="w-full py-24 relative z-20 overflow-hidden">
@@ -267,7 +293,7 @@ export default function LandingPage() {
             </div>
 
             {/* Terminal Window */}
-            <div className="w-full max-w-3xl mx-auto bg-[#0a0a0a] rounded-xl border border-white/10 shadow-2xl overflow-hidden font-mono text-sm relative group">
+            <ScrollReveal variant="zoom-in" duration={1200} className="w-full max-w-3xl mx-auto rounded-xl shadow-2xl overflow-hidden font-mono text-sm relative group bg-[#0a0a0a] border border-white/10">
 
               {/* Floating Tech Specs */}
               <div className="absolute top-1/2 -right-32 hidden xl:block space-y-4 opacity-30">
@@ -343,11 +369,13 @@ export default function LandingPage() {
                   </div>
                 </div>
               </div>
-            </div>
+            </ScrollReveal>
           </div>
         </section>
 
-        {/* 💠 Scanner Feature Grid */}
+        <CyberSeparator />
+
+        {/* 🧠 Scanner Feature Grid */}
         <section id="features" className="w-full py-32 relative z-20">
           <div className="container px-4 md:px-6 mx-auto max-w-[1400px]">
 
@@ -366,89 +394,101 @@ export default function LandingPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[minmax(320px,auto)]">
 
               {/* Feature 1: The Adaptive Core */}
-              <TiltCard className="md:col-span-2 p-10 group" spotlightColor="rgba(6,182,212,0.2)">
+              <ScrollReveal variant="fade-up" delay={200} className="md:col-span-2">
+                <TiltCard className="h-full p-10 group" spotlightColor="rgba(6,182,212,0.2)" enableGlitch>
 
-                {/* Background Meteor Effect */}
-                <div className="absolute top-0 right-0 w-full h-full overflow-hidden opacity-20 pointer-events-none">
-                  <div className="absolute top-1/2 left-1/2 w-[500px] h-[1px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent rotate-45 -translate-x-full animate-meteor" />
-                </div>
+                  {/* Background Meteor Effect */}
+                  <div className="absolute top-0 right-0 w-full h-full overflow-hidden opacity-20 pointer-events-none">
+                    <div className="absolute top-1/2 left-1/2 w-[500px] h-[1px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent rotate-45 -translate-x-full animate-meteor" />
+                  </div>
 
-                <div className="relative z-10 flex flex-col justify-between h-full space-y-16">
-                  <div className="flex justify-between items-start">
-                    <div className="w-16 h-16 rounded-2xl bg-cyan-950/30 flex items-center justify-center border border-cyan-500/20 text-cyan-400 group-hover:scale-110 group-hover:bg-cyan-500 group-hover:text-black transition-all duration-500">
-                      <Brain className="w-8 h-8" />
+                  <div className="relative z-10 flex flex-col justify-between h-full space-y-16">
+                    <div className="flex justify-between items-start">
+                      <div className="w-16 h-16 rounded-2xl bg-cyan-950/30 flex items-center justify-center border border-cyan-500/20 text-cyan-400 group-hover:scale-110 group-hover:bg-cyan-500 group-hover:text-black transition-all duration-500">
+                        <Brain className="w-8 h-8" />
+                      </div>
+                      <Badge variant="outline" className="border-cyan-500/30 text-cyan-400 bg-cyan-500/5 font-mono text-[10px] tracking-widest uppercase px-3 py-1">
+                        Module 01
+                      </Badge>
                     </div>
-                    <Badge variant="outline" className="border-cyan-500/30 text-cyan-400 bg-cyan-500/5 font-mono text-[10px] tracking-widest uppercase px-3 py-1">
-                      Module 01
-                    </Badge>
+                    <div>
+                      <h3 className="text-4xl font-black text-white mb-4 group-hover:text-cyan-100 transition-colors">Adaptive Opponents</h3>
+                      <p className="text-zinc-400 max-w-lg text-lg leading-relaxed">
+                        Engage with procedural personas like <span className="text-cyan-400 font-medium">'The Stoic'</span> or <span className="text-red-400 font-medium">'Devil's Advocate'</span>.
+                        Our neural networks analyze your rhetorical weaknesses in real-time.
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-4xl font-black text-white mb-4 group-hover:text-cyan-100 transition-colors">Adaptive Opponents</h3>
-                    <p className="text-zinc-400 max-w-lg text-lg leading-relaxed">
-                      Engage with procedural personas like <span className="text-cyan-400 font-medium">'The Stoic'</span> or <span className="text-red-400 font-medium">'Devil's Advocate'</span>.
-                      Our neural networks analyze your rhetorical weaknesses in real-time.
-                    </p>
-                  </div>
-                </div>
-              </TiltCard>
+                </TiltCard>
+              </ScrollReveal>
 
               {/* Feature 2: Debate Gym (Multiplayer) */}
-              <TiltCard className="md:row-span-2 p-10 flex flex-col justify-between group" spotlightColor="rgba(59,130,246,0.2)">
-                <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-blue-900/20 via-blue-900/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+              <ScrollReveal variant="fade-up" delay={400} className="md:row-span-2">
+                <TiltCard className="h-full p-10 flex flex-col justify-between group" spotlightColor="rgba(59,130,246,0.2)" enableGlitch glitchColor="rgba(59,130,246,0.5)">
+                  <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-blue-900/20 via-blue-900/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
-                <div className="flex justify-between items-start relative z-10">
-                  <div className="w-16 h-16 rounded-2xl bg-blue-950/30 flex items-center justify-center border border-blue-500/20 text-blue-400 group-hover:scale-110 group-hover:bg-blue-500 group-hover:text-black transition-all duration-500">
-                    <Users className="w-8 h-8" />
+                  <div className="flex justify-between items-start relative z-10">
+                    <div className="w-16 h-16 rounded-2xl bg-blue-950/30 flex items-center justify-center border border-blue-500/20 text-blue-400 group-hover:scale-110 group-hover:bg-blue-500 group-hover:text-black transition-all duration-500">
+                      <Users className="w-8 h-8" />
+                    </div>
                   </div>
-                </div>
 
-                <div className="mt-12 relative z-10">
-                  <h3 className="text-4xl font-black text-white mb-3">Live Arena</h3>
-                  <p className="text-zinc-400 mb-8 text-lg">Multiplayer lobbies. Real humans. AI Arbitrated.</p>
+                  <div className="mt-12 relative z-10">
+                    <h3 className="text-4xl font-black text-white mb-3">Live Arena</h3>
+                    <p className="text-zinc-400 mb-8 text-lg">Multiplayer lobbies. Real humans. AI Arbitrated.</p>
 
-                  {/* Dynamic Live Feed Simulation */}
-                  <div className="space-y-3 relative">
-                    <div className="absolute left-3 top-0 bottom-0 w-[1px] bg-zinc-800" />
-                    {[1, 2, 3].map((_, i) => (
-                      <div key={i} className="flex items-center gap-4 p-3 rounded-xl bg-black/40 border border-white/5 text-xs text-zinc-300 backdrop-blur-sm -translate-x-2 group-hover:translate-x-0 transition-transform duration-500" style={{ transitionDelay: `${i * 100}ms` }}>
-                        <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse box-content border-4 border-blue-500/20" />
-                        <span className="font-mono tracking-wide">
-                          <span className="text-blue-400 font-bold">USER_8{i}4</span> joined <span className="text-zinc-500">'UBI_DEBATE'</span>
-                        </span>
-                      </div>
-                    ))}
+                    {/* Dynamic Live Feed Simulation */}
+                    <div className="space-y-3 relative">
+                      <div className="absolute left-3 top-0 bottom-0 w-[1px] bg-zinc-800" />
+                      {[1, 2, 3].map((_, i) => (
+                        <div key={i} className="flex items-center gap-4 p-3 rounded-xl bg-black/40 border border-white/5 text-xs text-zinc-300 backdrop-blur-sm -translate-x-2 group-hover:translate-x-0 transition-transform duration-500" style={{ transitionDelay: `${i * 100}ms` }}>
+                          <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse box-content border-4 border-blue-500/20" />
+                          <span className="font-mono tracking-wide">
+                            <span className="text-blue-400 font-bold">USER_8{i}4</span> joined <span className="text-zinc-500">'UBI_DEBATE'</span>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </TiltCard>
+                </TiltCard>
+              </ScrollReveal>
 
               {/* Feature 3: Belief Mapping */}
-              <TiltCard className="p-10 group" spotlightColor="rgba(20,184,166,0.2)">
-                {/* Animated Grid BG */}
-                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10" />
-                <div className="absolute inset-0 bg-grid-white/[0.02] [mask-image:radial-gradient(ellipse_at_top_right,black,transparent)]" />
+              <ScrollReveal variant="fade-up" delay={600}>
+                <TiltCard className="p-10 group" spotlightColor="rgba(20,184,166,0.2)">
+                  {/* Animated Grid BG */}
+                  <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10" />
+                  <div className="absolute inset-0 bg-grid-white/[0.02] [mask-image:radial-gradient(ellipse_at_top_right,black,transparent)]" />
 
-                <div className="w-16 h-16 rounded-2xl bg-teal-950/30 flex items-center justify-center border border-teal-500/20 text-teal-400 group-hover:scale-110 group-hover:bg-teal-500 group-hover:text-black transition-all duration-500 mb-12 relative z-10">
-                  <Globe className="w-8 h-8" />
-                </div>
-                <h3 className="text-3xl font-black text-white mb-3 relative z-10">Belief Mapping</h3>
-                <p className="text-zinc-400 text-lg relative z-10">Visualize how your worldview shifts over time. Identify cognitive blind spots.</p>
-              </TiltCard>
+                  <div className="w-16 h-16 rounded-2xl bg-teal-950/30 flex items-center justify-center border border-teal-500/20 text-teal-400 group-hover:scale-110 group-hover:bg-teal-500 group-hover:text-black transition-all duration-500 mb-12 relative z-10">
+                    <Globe className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-3xl font-black text-white mb-3 relative z-10">Belief Mapping</h3>
+                  <p className="text-zinc-400 text-lg relative z-10">Visualize how your worldview shifts over time. Identify cognitive blind spots.</p>
+                </TiltCard>
+              </ScrollReveal>
 
               {/* Feature 4: Steel-man Scoring */}
-              <TiltCard className="p-10 group" spotlightColor="rgba(249,115,22,0.2)">
-                <div className="w-16 h-16 rounded-2xl bg-orange-950/30 flex items-center justify-center border border-orange-500/20 text-orange-400 group-hover:scale-110 group-hover:bg-orange-500 group-hover:text-black transition-all duration-500 mb-12">
-                  <Shield className="w-8 h-8" />
-                </div>
-                <h3 className="text-3xl font-black text-white mb-3">Steel-man Scoring</h3>
-                <p className="text-zinc-400 text-lg">Real-time analysis of your ability to represent opposing views accurately.</p>
-              </TiltCard>
+              <ScrollReveal variant="fade-up" delay={800}>
+                <TiltCard className="p-10 group" spotlightColor="rgba(249,115,22,0.2)">
+                  <div className="w-16 h-16 rounded-2xl bg-orange-950/30 flex items-center justify-center border border-orange-500/20 text-orange-400 group-hover:scale-110 group-hover:bg-orange-500 group-hover:text-black transition-all duration-500 mb-12">
+                    <Shield className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-3xl font-black text-white mb-3">Steel-man Scoring</h3>
+                  <p className="text-zinc-400 text-lg">Real-time analysis of your ability to represent opposing views accurately.</p>
+                </TiltCard>
+              </ScrollReveal>
 
             </div>
           </div>
         </section>
 
+        <CyberSeparator />
+
         {/* 🔢 Evolution Steps (Connected Nodes) */}
-        <section className="w-full py-40 bg-zinc-950/50 relative border-y border-white/5 overflow-hidden">
+        <section className="w-full py-40 bg-zinc-950/50 relative overflow-hidden">
+          {/* Tactical Grid Overlay */}
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black,transparent)] opacity-20" />
           {/* Animated Background Line */}
           <div className="absolute top-1/2 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-900/50 to-transparent" />
 
@@ -479,6 +519,8 @@ export default function LandingPage() {
           </div>
         </section>
 
+        <CyberSeparator />
+
         {/* 🚀 Final CTA (Portal Effect) */}
         <section className="w-full py-48 relative overflow-hidden flex items-center justify-center">
           <div className="absolute inset-0 bg-gradient-to-b from-black via-blue-950/20 to-black" />
@@ -499,20 +541,9 @@ export default function LandingPage() {
           </div>
         </section>
 
-      </main>
+        <Footer />
 
-      <footer className="py-12 border-t border-white/5 bg-black text-center relative z-10">
-        <div className="flex flex-col items-center gap-6">
-          <div className="flex items-center gap-1 opacity-50">
-            <div className="h-1 w-1 bg-zinc-500 rounded-full" />
-            <div className="h-1 w-12 bg-zinc-800 rounded-full" />
-            <div className="h-1 w-1 bg-zinc-500 rounded-full" />
-          </div>
-          <p className="text-zinc-700 text-[10px] uppercase tracking-[0.3em] font-mono">
-            © 2026 AI Battlefield. All systems nominal.
-          </p>
-        </div>
-      </footer>
-    </div>
+      </main>
+    </div >
   )
 }

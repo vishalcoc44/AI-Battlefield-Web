@@ -18,6 +18,12 @@ import {
   Tag
 } from "lucide-react"
 import { dataService, type CommunityDiscussion } from "@/lib/data-service"
+import { sanitizeText } from "@/lib/utils"
+import { supabase } from "@/lib/supabase"
+import { COMMUNITY_CONSTANTS } from "@/lib/constants/communities"
+import { DiscussionCreateFormData, DEFAULT_DISCUSSION_CREATE_DATA } from "@/lib/types/community-forms"
+import { validateDiscussionData } from "@/lib/utils/validation"
+import { showToast } from "@/lib/toast"
 
 interface CommunityDiscussionsProps {
   communityId?: string
@@ -27,18 +33,15 @@ interface CommunityDiscussionsProps {
 
 export function CommunityDiscussions({
   communityId,
-  limit = 10,
+  limit = COMMUNITY_CONSTANTS.DISCUSSIONS_LIMIT,
   showCreateForm = false
 }: CommunityDiscussionsProps) {
   const [threads, setThreads] = useState<CommunityDiscussion[]>([])
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
   const [showCreateThread, setShowCreateThread] = useState(false)
-  const [newThread, setNewThread] = useState({
-    title: '',
-    content: '',
-    tags: ''
-  })
+  const [newThread, setNewThread] = useState<DiscussionCreateFormData>(DEFAULT_DISCUSSION_CREATE_DATA)
+  const [validationErrors, setValidationErrors] = useState<{[key: string]: string[]}>({})
 
   const loadThreads = async () => {
     setLoading(true)
@@ -58,17 +61,34 @@ export function CommunityDiscussions({
   }, [communityId, limit])
 
   const handleCreateThread = async () => {
-    if (!newThread.title.trim() || !newThread.content.trim()) return
+    // Validate form data
+    const tags = newThread.tags.split(',').map(t => t.trim()).filter(t => t)
+    const validation = validateDiscussionData({
+      ...newThread,
+      tags
+    })
+
+    if (!validation.isValid) {
+      setValidationErrors(validation.fieldErrors)
+      return
+    }
 
     setCreating(true)
+    setValidationErrors({})
     try {
-      const tags = newThread.tags.split(',').map(t => t.trim()).filter(t => t)
+      const { data: { user } } = await supabase.auth.getUser()
+      const userId = user?.id
+      if (!userId) {
+        showToast.error("Authentication Required", "Please sign in to start a discussion.")
+        return
+      }
+
       const result = await dataService.createDiscussionThread(
         communityId || 'general',
         newThread.title,
         newThread.content,
         tags,
-        'current-user' // Would get from auth
+        userId
       )
 
       if (result) {
@@ -84,17 +104,20 @@ export function CommunityDiscussions({
           createdAt: result.createdAt,
           updatedAt: result.updatedAt,
           author: {
-            id: 'current-user',
+            id: userId,
             name: result.author,
             avatar: undefined
           }
         }
         setThreads(prev => [communityDiscussion, ...prev])
-        setNewThread({ title: '', content: '', tags: '' })
+        setNewThread(DEFAULT_DISCUSSION_CREATE_DATA)
         setShowCreateThread(false)
+        setValidationErrors({})
+        showToast.success("Discussion Started", "Your thread has been posted!")
       }
     } catch (error) {
       console.error("Failed to create thread:", error)
+      showToast.error("Failed to Post", "Unable to create discussion. Please try again.")
     } finally {
       setCreating(false)
     }
@@ -155,19 +178,46 @@ export function CommunityDiscussions({
               <Input
                 placeholder="Thread title..."
                 value={newThread.title}
-                onChange={(e) => setNewThread(prev => ({ ...prev, title: e.target.value }))}
+                onChange={(e) => {
+                  setNewThread(prev => ({ ...prev, title: e.target.value }))
+                  if (validationErrors.title) {
+                    setValidationErrors(prev => ({ ...prev, title: undefined }))
+                  }
+                }}
+                className={validationErrors.title ? 'border-red-500' : ''}
               />
+              {validationErrors.title && (
+                <p className="text-xs text-red-400 mt-1">{validationErrors.title[0]}</p>
+              )}
               <Textarea
                 placeholder="What's on your mind?"
                 rows={4}
                 value={newThread.content}
-                onChange={(e) => setNewThread(prev => ({ ...prev, content: e.target.value }))}
+                onChange={(e) => {
+                  setNewThread(prev => ({ ...prev, content: e.target.value }))
+                  if (validationErrors.content) {
+                    setValidationErrors(prev => ({ ...prev, content: undefined }))
+                  }
+                }}
+                className={validationErrors.content ? 'border-red-500' : ''}
               />
+              {validationErrors.content && (
+                <p className="text-xs text-red-400 mt-1">{validationErrors.content[0]}</p>
+              )}
               <Input
                 placeholder="Tags (comma-separated)..."
                 value={newThread.tags}
-                onChange={(e) => setNewThread(prev => ({ ...prev, tags: e.target.value }))}
+                onChange={(e) => {
+                  setNewThread(prev => ({ ...prev, tags: e.target.value }))
+                  if (validationErrors.tags) {
+                    setValidationErrors(prev => ({ ...prev, tags: undefined }))
+                  }
+                }}
+                className={validationErrors.tags ? 'border-red-500' : ''}
               />
+              {validationErrors.tags && (
+                <p className="text-xs text-red-400 mt-1">{validationErrors.tags[0]}</p>
+              )}
               <div className="flex gap-2">
                 <Button
                   onClick={handleCreateThread}
@@ -216,8 +266,8 @@ export function CommunityDiscussions({
                           {thread.isLocked && (
                             <Lock className="h-4 w-4 text-gray-500" />
                           )}
-                          <h3 className="font-semibold text-lg leading-tight">
-                            {thread.title}
+                          <h3 className="font-semibold text-lg leading-tight truncate pr-2" title={sanitizeText(thread.title)}>
+                            {sanitizeText(thread.title)}
                           </h3>
                         </div>
                         <p className="text-sm text-muted-foreground mb-2">
@@ -227,7 +277,7 @@ export function CommunityDiscussions({
                     </div>
 
                     <p className="text-sm text-muted-foreground mb-3 line-clamp-3">
-                      {thread.content}
+                      {sanitizeText(thread.content)}
                     </p>
 
                     {thread.tags.length > 0 && (
