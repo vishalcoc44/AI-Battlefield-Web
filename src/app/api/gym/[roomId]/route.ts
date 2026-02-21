@@ -11,9 +11,10 @@ const supabase = createClient(
 // DELETE /api/gym/[roomId] - Delete a gym room (only by creator)
 export async function DELETE(
 	request: NextRequest,
-	{ params }: { params: { roomId: string } }
+	{ params }: { params: Promise<{ roomId: string }> }
 ) {
 	try {
+		const { roomId } = await params
 		const { data: { user }, error: authError } = await supabase.auth.getUser()
 
 		if (authError || !user) {
@@ -27,7 +28,7 @@ export async function DELETE(
 		const { data: room, error: roomError } = await supabase
 			.from('gym_rooms')
 			.select('created_by')
-			.eq('id', params.roomId)
+			.eq('id', roomId)
 			.single()
 
 		if (roomError) {
@@ -50,7 +51,7 @@ export async function DELETE(
 				const { error } = await supabase
 					.from('gym_rooms')
 					.delete()
-					.eq('id', params.roomId)
+					.eq('id', roomId)
 
 				if (error) throw error
 				return { success: true }
@@ -87,9 +88,10 @@ export async function DELETE(
 // PATCH /api/gym/[roomId] - Update a gym room (only by creator)
 export async function PATCH(
 	request: NextRequest,
-	{ params }: { params: { roomId: string } }
+	{ params }: { params: Promise<{ roomId: string }> }
 ) {
 	try {
+		const { roomId } = await params
 		const { data: { user }, error: authError } = await supabase.auth.getUser()
 
 		if (authError || !user) {
@@ -103,7 +105,7 @@ export async function PATCH(
 		const { data: room, error: roomError } = await supabase
 			.from('gym_rooms')
 			.select('created_by')
-			.eq('id', params.roomId)
+			.eq('id', roomId)
 			.single()
 
 		if (roomError) {
@@ -152,7 +154,7 @@ export async function PATCH(
 				const { data, error } = await supabase
 					.from('gym_rooms')
 					.update(updateData)
-					.eq('id', params.roomId)
+					.eq('id', roomId)
 					.select()
 					.single()
 

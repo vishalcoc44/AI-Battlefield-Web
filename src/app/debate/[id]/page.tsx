@@ -6,7 +6,7 @@ import { DebateHeader } from "@/components/debate/DebateHeader"
 import { DebateMessageList } from "@/components/debate/DebateMessageList"
 import { DebateInput } from "@/components/debate/DebateInput"
 
-export default function DebatePage({ params }: { params: { id: string } }) {
+export default function DebatePage() {
    const {
       messages,
       session,

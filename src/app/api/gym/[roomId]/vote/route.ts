@@ -9,9 +9,10 @@ const supabase = createClient(
 // POST /api/gym/[roomId]/vote - Cast a vote on a debate
 export async function POST(
 	request: NextRequest,
-	{ params }: { params: { roomId: string } }
+	{ params }: { params: Promise<{ roomId: string }> }
 ) {
 	try {
+		const { roomId } = await params
 		const { data: { user }, error: authError } = await supabase.auth.getUser()
 
 		if (authError || !user) {
@@ -36,7 +37,7 @@ export async function POST(
 		const { error: voteError } = await supabase
 			.from('gym_room_votes')
 			.upsert({
-				room_id: params.roomId,
+				room_id: roomId,
 				user_id: user.id,
 				side
 			}, {
@@ -53,7 +54,7 @@ export async function POST(
 
 		// Update room vote counts
 		const { error: updateError } = await supabase.rpc('update_room_vote_counts', {
-			p_room_id: params.roomId
+			p_room_id: roomId
 		})
 
 		if (updateError) {
