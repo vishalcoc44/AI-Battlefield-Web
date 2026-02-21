@@ -144,8 +144,13 @@ class DataService {
     return this.communityService.sendCommunityChatMessage(communityId, userId, content)
   }
 
-  async getCommunities(): Promise<Community[]> {
-    return this.communityService.getCommunities()
+  async getCommunities(
+    limit?: number,
+    offset?: number,
+    sortBy?: 'name' | 'created_at' | 'member_count' | 'activity_level',
+    sortOrder?: 'asc' | 'desc'
+  ): Promise<Community[]> {
+    return this.communityService.getCommunities(limit, offset, sortBy, sortOrder)
   }
 
   async searchCommunities(

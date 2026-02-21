@@ -121,6 +121,51 @@ export function useBeliefs(initialFilters: Partial<BeliefQuery> = {}): UseBelief
     }));
   }, [filters]);
 
+  // Load beliefs from API
+  const loadBeliefs = useCallback(async (resetPage: boolean = false) => {
+    if (!isMountedRef.current) return;
+
+    // Cancel previous request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const page = resetPage ? 1 : currentPage;
+      const response = await fetchBeliefs({ ...filters, page });
+
+      if (isMountedRef.current) {
+        setBeliefs(response.beliefs);
+        setHasMore(response.hasMore);
+        setMetrics(calculateBeliefMetrics(response.beliefs));
+
+        // Cache the data
+        cacheBeliefsData('beliefs', {
+          beliefs: response.beliefs,
+          total: response.total,
+          hasMore: response.hasMore,
+        });
+      }
+    } catch (err: any) {
+      if (err?.name !== 'AbortError' && isMountedRef.current) {
+        setError(err?.message || 'Failed to load beliefs');
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
+    }
+  }, [filters, currentPage]);
+
+  // Refresh beliefs (alias for loadBeliefs)
+  const refresh = useCallback(async () => {
+    await loadBeliefs(true);
+  }, [loadBeliefs]);
+
   // Check authentication
   useEffect(() => {
     const checkAuth = async () => {
@@ -211,8 +256,9 @@ export function useBeliefs(initialFilters: Partial<BeliefQuery> = {}): UseBelief
 
       if (isMountedRef.current) {
         // Optimistically add to the list
-        setBeliefs(prev => [newBelief, ...prev]);
-        setMetrics(prev => calculateBeliefMetrics([newBelief, ...prev]));
+        const updatedBeliefs = [newBelief, ...beliefs];
+        setBeliefs(updatedBeliefs);
+        setMetrics(calculateBeliefMetrics(updatedBeliefs));
 
         // Refresh to get accurate data
         setTimeout(() => refresh(), 1000);
@@ -231,8 +277,9 @@ export function useBeliefs(initialFilters: Partial<BeliefQuery> = {}): UseBelief
 
       if (isMountedRef.current) {
         // Optimistically update in the list
-        setBeliefs(prev => prev.map(b => b.id === id ? updatedBelief : b));
-        setMetrics(prev => calculateBeliefMetrics(prev.map(b => b.id === id ? updatedBelief : b)));
+        const updatedBeliefs = beliefs.map(b => b.id === id ? updatedBelief : b);
+        setBeliefs(updatedBeliefs);
+        setMetrics(calculateBeliefMetrics(updatedBeliefs));
 
         // Refresh to get accurate data
         setTimeout(() => refresh(), 1000);
@@ -251,8 +298,9 @@ export function useBeliefs(initialFilters: Partial<BeliefQuery> = {}): UseBelief
 
       if (isMountedRef.current) {
         // Optimistically remove from the list
-        setBeliefs(prev => prev.filter(b => b.id !== id));
-        setMetrics(prev => calculateBeliefMetrics(prev.filter(b => b.id !== id)));
+        const updatedBeliefs = beliefs.filter(b => b.id !== id);
+        setBeliefs(updatedBeliefs);
+        setMetrics(calculateBeliefMetrics(updatedBeliefs));
 
         // Refresh to get accurate data
         setTimeout(() => refresh(), 1000);

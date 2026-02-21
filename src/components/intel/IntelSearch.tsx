@@ -83,13 +83,13 @@ export function IntelSearch({ onSearch, onFilterChange, disabled }: IntelSearchP
 			case 'ArrowDown':
 				e.preventDefault()
 				const nextIndex = (currentIndex + 1) % filters.length
-				document.querySelector(`[data-filter-id="${filters[nextIndex].id}"]`)?.focus()
+				;(document.querySelector(`[data-filter-id="${filters[nextIndex].id}"]`) as HTMLElement)?.focus()
 				break
 			case 'ArrowLeft':
 			case 'ArrowUp':
 				e.preventDefault()
 				const prevIndex = currentIndex === 0 ? filters.length - 1 : currentIndex - 1
-				document.querySelector(`[data-filter-id="${filters[prevIndex].id}"]`)?.focus()
+				;(document.querySelector(`[data-filter-id="${filters[prevIndex].id}"]`) as HTMLElement)?.focus()
 				break
 		}
 	}

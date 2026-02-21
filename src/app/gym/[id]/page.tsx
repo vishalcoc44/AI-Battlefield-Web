@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { TopNav } from "@/components/layout/TopNav"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Loader2 } from "lucide-react"
+import { Loader2, MessageSquare, Users } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { dataService } from "@/lib/data-service"
@@ -17,6 +17,8 @@ import { ChatInput } from "@/components/debate/ChatInput"
 import { AIPanel } from "@/components/debate/AIPanel"
 import { ParticipantsList } from "@/components/debate/ParticipantsList"
 import { RoomHeader } from "@/components/debate/RoomHeader"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 type GymMessage = {
    id: string
@@ -50,7 +52,7 @@ export default function GroupDebateScreen() {
    const [analyzing, setAnalyzing] = useState(false)
    const [analysis, setAnalysis] = useState<AIAnalysis | null>(null)
    const [voteStats, setVoteStats] = useState({ pro: 50, anti: 50 })
-   const [timeLeft, setTimeLeft] = useState(GYM_CONSTANTS.TIMER.INITIAL_DURATION_SECONDS)
+   const [timeLeft, setTimeLeft] = useState<number>(GYM_CONSTANTS.TIMER.INITIAL_DURATION_SECONDS)
    const [activeTab, setActiveTab] = useState("debate")
    const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -432,14 +434,14 @@ export default function GroupDebateScreen() {
          setInputValue(inputValue) // Restore input
          return
       }
-   }, [session, inputValue, activeTab])
+   }, [room, inputValue, activeTab])
 
    // Debounced send to prevent rapid-fire messages
    const debouncedSend = useCallback(debounce(() => {
-      if (inputValue.trim() && !loading) {
+      if (inputValue.trim()) {
          handleSend()
       }
-   }, 500), [inputValue, loading, handleSend])
+   }, 500), [inputValue, handleSend])
 
    const handleLeave = () => {
       router.push('/gym')

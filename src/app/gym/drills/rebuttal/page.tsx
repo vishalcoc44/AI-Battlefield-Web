@@ -18,7 +18,7 @@ export default function RapidRebuttalPage() {
 	const [loading, setLoading] = useState(true)
 	const [activeDrillIndex, setActiveDrillIndex] = useState(0)
 
-	const [timeLeft, setTimeLeft] = useState(GYM_CONSTANTS.TIMER.DRILL_DURATION_SECONDS)
+	const [timeLeft, setTimeLeft] = useState<number>(GYM_CONSTANTS.TIMER.DRILL_DURATION_SECONDS)
 	const [isActive, setIsActive] = useState(false)
 	const [rebuttal, setRebuttal] = useState("")
 	const [isFinished, setIsFinished] = useState(false)

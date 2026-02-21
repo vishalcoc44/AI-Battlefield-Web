@@ -209,7 +209,7 @@ export function useDojoSession() {
 				// Use fallback analysis
 				analysisResult = {
 					analysis: 'Analysis unavailable - connection issues',
-					sentiment: 'neutral',
+					sentiment: 'calm' as const,
 					isCalm: true,
 					calmScoreChange: 0
 				}
@@ -218,8 +218,8 @@ export function useDojoSession() {
 			// Update user message with analysis
 			const updatedUserMessage = {
 				...userMessage,
-				analysis: analysisResult.analysis,
-				sentiment: analysisResult.sentiment
+				analysis: analysisResult!.analysis,
+				sentiment: analysisResult!.sentiment
 			}
 
 			const messagesWithAnalysis = messagesWithUser.map(msg =>
@@ -268,7 +268,7 @@ export function useDojoSession() {
 			const trollMessage: DojoMessage = {
 				id: Date.now() + 1,
 				sender: 'troll',
-				text: trollResult.response,
+				text: trollResult!.response,
 				sentiment: 'toxic',
 				analysis: null,
 				timestamp: Date.now()

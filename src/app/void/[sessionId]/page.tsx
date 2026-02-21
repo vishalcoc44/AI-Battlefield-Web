@@ -111,7 +111,7 @@ export default function VoidSessionPage() {
 						<VoidMessageInput
 							onSend={handleSendMessage}
 							isPosting={isPosting}
-							disabled={!session.is_active}
+							disabled={!session.isActive}
 						/>
 					</div>
 				</main>

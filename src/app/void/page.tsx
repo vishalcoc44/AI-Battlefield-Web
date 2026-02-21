@@ -186,7 +186,7 @@ export default function VoidPage() {
 								return (
 									<div
 										key={mask.id}
-										ref={(el) => (maskRefs.current[i] = el)}
+										ref={(el) => { maskRefs.current[i] = el }}
 										tabIndex={0}
 										role="button"
 										aria-label={`Select identity mask: ${mask.name}`}

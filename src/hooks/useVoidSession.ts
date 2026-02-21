@@ -27,7 +27,7 @@ interface UseVoidSessionReturn {
 	error: string | null
 	createSession: (maskId: string) => Promise<void>
 	endSession: () => Promise<void>
-	sendMessage: (content: string) => Promise<void>
+	sendMessage: (content: string) => void
 	loadMessages: () => Promise<void>
 	refreshStats: () => Promise<void>
 }
@@ -123,7 +123,7 @@ export function useVoidSession(): UseVoidSessionReturn {
 
 	// Set up message polling if session is active
 	useEffect(() => {
-		if (!session || !session.is_active) {
+		if (!session || !session.isActive) {
 			if (messagesIntervalRef.current) {
 				clearInterval(messagesIntervalRef.current)
 			}
@@ -150,7 +150,7 @@ export function useVoidSession(): UseVoidSessionReturn {
 		try {
 			const newSession = await createVoidSession(maskId)
 			setSession(newSession)
-			showToast.success('Entered The Void', `You are now ${newSession.mask_name}`)
+			showToast.success('Entered The Void', `You are now ${newSession.maskName}`)
 			// Navigate to session page
 			router.push(`/void/${newSession.id}`)
 		} catch (err: any) {

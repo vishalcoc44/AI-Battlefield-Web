@@ -135,34 +135,38 @@ export default function DojoPage() {
 
          <div className="relative z-10 w-full"><TopNav /></div>
 
-         <DojoHeader session={session} onStartNew={createSession} />
+         {session && (
+           <>
+            <DojoHeader session={session} onStartNew={resetSession} />
 
-         {/* Error Display */}
-         {uiState.error && (
-            <div className="relative z-20 mx-4 md:mx-8 mt-4">
-               <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-red-400 text-sm">
-                  {uiState.error}
+            {/* Error Display */}
+            {uiState.error && (
+               <div className="relative z-20 mx-4 md:mx-8 mt-4">
+                  <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-red-400 text-sm">
+                     {uiState.error}
+                  </div>
                </div>
-            </div>
+            )}
+
+            <DojoMessageList
+               ref={messagesEndRef}
+               messages={session.messages}
+               scenario={session.scenario}
+               isAnalyzing={uiState.isAnalyzing}
+               isGenerating={uiState.isGenerating}
+            />
+
+            <DojoInput
+               value={inputValue}
+               onChange={setInputValue}
+               onSend={handleSend}
+               onReset={() => setShowResetModal(true)}
+               disabled={uiState.isAnalyzing || uiState.isGenerating}
+               isAnalyzing={uiState.isAnalyzing}
+               isGenerating={uiState.isGenerating}
+            />
+           </>
          )}
-
-         <DojoMessageList
-            ref={messagesEndRef}
-            messages={session.messages}
-            scenario={session.scenario}
-            isAnalyzing={uiState.isAnalyzing}
-            isGenerating={uiState.isGenerating}
-         />
-
-         <DojoInput
-            value={inputValue}
-            onChange={setInputValue}
-            onSend={handleSend}
-            onReset={() => setShowResetModal(true)}
-            disabled={uiState.isAnalyzing || uiState.isGenerating}
-            isAnalyzing={uiState.isAnalyzing}
-            isGenerating={uiState.isGenerating}
-         />
 
          {/* Reset Session Modal */}
          <ResetSessionModal

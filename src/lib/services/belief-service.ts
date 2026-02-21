@@ -4,6 +4,7 @@ import { BELIEF_CONSTANTS } from '@/lib/constants/belief';
 import {
   Belief,
   BeliefQuery,
+  BeliefMetrics,
   BeliefsResponse,
   BeliefDetailResponse,
   CreateBeliefRequest,
@@ -18,7 +19,7 @@ const DEFAULT_TIMEOUT = 30000; // 30 seconds
 // Helper function to handle API responses
 async function handleApiResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    let errorMessage = BELIEF_CONSTANTS.ERROR_MESSAGES.SERVER_ERROR;
+    let errorMessage: string = BELIEF_CONSTANTS.ERROR_MESSAGES.SERVER_ERROR;
 
     try {
       const errorData = await response.json();
@@ -65,7 +66,7 @@ function createTimeoutController(timeoutMs: number = DEFAULT_TIMEOUT) {
 }
 
 // Fetch beliefs with filtering and pagination
-export async function fetchBeliefs(query: BeliefQuery = {}): Promise<BeliefsResponse> {
+export async function fetchBeliefs(query: BeliefQuery = { page: 1, limit: 20 }): Promise<BeliefsResponse> {
   return withRetry(async () => {
     const controller = createTimeoutController();
 

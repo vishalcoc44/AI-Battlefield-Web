@@ -226,7 +226,7 @@ export function validateMessage(message: string): { isValid: boolean; error?: st
  * @returns Validation result
  */
 export function validateCategory(category: string): { isValid: boolean; error?: string } {
-  if (!ValidationRules.category.allowedValues.includes(category)) {
+  if (!ValidationRules.category.allowedValues.includes(category as any)) {
     return { isValid: false, error: 'Invalid category selected' }
   }
 
@@ -309,7 +309,7 @@ export function createTimeoutPromise(ms: number): Promise<never> {
  * @param timeoutMs - Timeout in milliseconds (default: 30000)
  * @returns Promise that resolves/rejects with the original promise or timeout
  */
-export function withTimeout<T>(promise: Promise<T>, timeoutMs: number = 30000): Promise<T> {
+export function withTimeout<T>(promise: PromiseLike<T>, timeoutMs: number = 30000): Promise<T> {
   return Promise.race([
     promise,
     createTimeoutPromise(timeoutMs)
@@ -321,7 +321,7 @@ export function withTimeout<T>(promise: Promise<T>, timeoutMs: number = 30000): 
  * @param error - The error object to classify
  * @returns Object with error type and user-friendly message
  */
-export function classifyError(error: unknown): { type: string; message: string; retryable: boolean } {
+export function classifyError(error: any): { type: string; message: string; retryable: boolean } {
   // Network errors (no internet, DNS issues, etc.)
   if (!navigator.onLine) {
     return {

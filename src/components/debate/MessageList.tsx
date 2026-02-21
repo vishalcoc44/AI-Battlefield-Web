@@ -24,8 +24,8 @@ interface GymMessage {
 interface MessageListProps {
   messages: GymMessage[]
   currentUserId: string | null
-  scrollRef: React.RefObject<HTMLDivElement>
-  bottomRef: React.RefObject<HTMLDivElement>
+  scrollRef: React.RefObject<HTMLDivElement | null>
+  bottomRef: React.RefObject<HTMLDivElement | null>
 }
 
 export function MessageList({ messages, currentUserId, scrollRef, bottomRef }: MessageListProps) {

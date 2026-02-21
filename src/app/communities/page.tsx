@@ -334,7 +334,7 @@ export default function CommunitiesPage() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500 group-focus-within:text-teal-400 transition-colors" />
               <Input
                 placeholder="Search frequencies (name, tag, description)..."
-                className="pl-12 bg-transparent border-0 h-12 text-white placeholder:text-zinc-600 focus-visible:ring-0 text-base"
+                className={`pl-12 bg-transparent border-0 h-12 text-white placeholder:text-zinc-600 focus-visible:ring-0 text-base ${searchTerm !== debouncedSearchTerm ? 'ring-1 ring-yellow-500/50' : ''}`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 aria-label="Search communities"
@@ -344,7 +344,6 @@ export default function CommunitiesPage() {
                     setSelectedCategory('All')
                   }
                 }}
-                className={`${searchTerm !== debouncedSearchTerm ? 'ring-1 ring-yellow-500/50' : ''}`}
               />
             </div>
             <div
@@ -738,7 +737,7 @@ export default function CommunitiesPage() {
                     setNewCommunityData(prev => ({ ...prev, name: e.target.value }))
                     // Clear validation error when user starts typing
                     if (validationErrors.name) {
-                      setValidationErrors(prev => ({ ...prev, name: undefined }))
+                      setValidationErrors(prev => ({ ...prev, name: [] }))
                     }
                   }}
                   className={`bg-zinc-900 border-white/10 focus-visible:ring-teal-500 ${validationErrors.name ? 'border-red-500' : ''}`}
@@ -758,7 +757,7 @@ export default function CommunitiesPage() {
                   onChange={(e) => {
                     setNewCommunityData(prev => ({ ...prev, description: e.target.value }))
                     if (validationErrors.description) {
-                      setValidationErrors(prev => ({ ...prev, description: undefined }))
+                      setValidationErrors(prev => ({ ...prev, description: [] }))
                     }
                   }}
                   className={`bg-zinc-900 border-white/10 focus-visible:ring-teal-500 ${validationErrors.description ? 'border-red-500' : ''}`}

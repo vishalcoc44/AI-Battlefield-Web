@@ -168,7 +168,7 @@ export function SecureDropModal({ onSuccess }: SecureDropModalProps = {}) {
 			} else {
 				throw new Error("Submission failed - server did not confirm successful processing.")
 			}
-		} catch (err: unknown) {
+		} catch (err: any) {
 			// Defensive error handling for various Zod/Validation error shapes
 			let validationMessage = null
 

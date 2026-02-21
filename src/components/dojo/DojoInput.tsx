@@ -6,7 +6,7 @@ import { DOJO_CONSTANTS } from "@/lib/constants/dojo"
 
 interface DojoInputProps {
    value: string
-   onChange: (value: string) => useState
+   onChange: (value: string) => void
    onSend: () => void
    onReset: () => void
    disabled?: boolean

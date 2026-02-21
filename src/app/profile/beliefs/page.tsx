@@ -288,7 +288,7 @@ export default function BeliefTrackerPage() {
         open={showCreateModal}
         onOpenChange={setShowCreateModal}
         belief={null}
-        onSubmit={handleCreateBelief}
+        onSubmit={async (data) => { await createBelief(data as CreateBeliefRequest) }}
       />
 
       {/* Edit Belief Modal */}
@@ -296,7 +296,7 @@ export default function BeliefTrackerPage() {
         open={!!editingBelief}
         onOpenChange={(open) => !open && setEditingBelief(null)}
         belief={editingBelief}
-        onSubmit={handleUpdateBelief}
+        onSubmit={async (data) => { if (editingBelief) { await updateBelief(editingBelief.id, data as UpdateBeliefRequest); setEditingBelief(null) } }}
       />
 
       {/* Delete Confirmation Modal */}

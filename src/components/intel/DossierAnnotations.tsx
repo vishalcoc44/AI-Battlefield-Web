@@ -93,7 +93,7 @@ export function DossierAnnotations({ dossierId, contentRef }: DossierAnnotations
 			// Calculate initial position (centered above selection)
 			let x = rect.left + (rect.width / 2)
 			let y = rect.top - 10
-			let position = 'above' // Track if menu is above or below
+			let position: 'above' | 'below' = 'above' // Track if menu is above or below
 
 			// Bound to viewport to prevent off-screen placement
 			const menuWidth = 120 // Approximate menu width

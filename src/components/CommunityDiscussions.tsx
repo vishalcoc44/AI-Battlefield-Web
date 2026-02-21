@@ -181,7 +181,7 @@ export function CommunityDiscussions({
                 onChange={(e) => {
                   setNewThread(prev => ({ ...prev, title: e.target.value }))
                   if (validationErrors.title) {
-                    setValidationErrors(prev => ({ ...prev, title: undefined }))
+                    setValidationErrors(prev => ({ ...prev, title: [] }))
                   }
                 }}
                 className={validationErrors.title ? 'border-red-500' : ''}
@@ -196,7 +196,7 @@ export function CommunityDiscussions({
                 onChange={(e) => {
                   setNewThread(prev => ({ ...prev, content: e.target.value }))
                   if (validationErrors.content) {
-                    setValidationErrors(prev => ({ ...prev, content: undefined }))
+                    setValidationErrors(prev => ({ ...prev, content: [] }))
                   }
                 }}
                 className={validationErrors.content ? 'border-red-500' : ''}
@@ -210,7 +210,7 @@ export function CommunityDiscussions({
                 onChange={(e) => {
                   setNewThread(prev => ({ ...prev, tags: e.target.value }))
                   if (validationErrors.tags) {
-                    setValidationErrors(prev => ({ ...prev, tags: undefined }))
+                    setValidationErrors(prev => ({ ...prev, tags: [] }))
                   }
                 }}
                 className={validationErrors.tags ? 'border-red-500' : ''}
