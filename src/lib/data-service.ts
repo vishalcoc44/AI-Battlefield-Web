@@ -148,6 +148,22 @@ class DataService {
     return this.communityService.getCommunities()
   }
 
+  async searchCommunities(
+    searchQuery?: string,
+    filters?: {
+      category?: string
+      type?: 'Public' | 'Private'
+      memberCountRange?: { min?: number; max?: number }
+      activityLevel?: 'Low' | 'Medium' | 'High'
+    },
+    sortBy?: 'name' | 'created_at' | 'member_count' | 'activity_level',
+    sortOrder?: 'asc' | 'desc',
+    limit?: number,
+    offset?: number
+  ): Promise<Community[]> {
+    return this.communityService.searchCommunities(searchQuery, filters, sortBy, sortOrder, limit, offset)
+  }
+
   async getCommunityById(id: string): Promise<Community | null> {
     return this.communityService.getCommunityById(id)
   }
