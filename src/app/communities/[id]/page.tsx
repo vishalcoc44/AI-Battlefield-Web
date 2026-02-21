@@ -224,7 +224,29 @@ export default function CommunityDetailPage() {
 		if (!userId || !community) return
 		setSaving(true)
 		try {
-			const updated = await dataService.updateCommunity(community.id, editData, userId)
+			// Prepare updates ensuring `rules` matches `Community` type expectations
+			const preparedUpdates: any = { ...editData }
+			if (preparedUpdates.rules) {
+				// If rules is an array of strings (from form), convert to CommunityRule[]
+				if (Array.isArray(preparedUpdates.rules)) {
+					preparedUpdates.rules = preparedUpdates.rules.map((r: any, idx: number) =>
+						typeof r === 'string'
+							? { id: `tmp-${idx}`, title: r.slice(0, 60), description: r, priority: 'medium' }
+							: r
+					)
+				}
+				// If it's a JSON string representing rules, try to parse it
+				else if (typeof preparedUpdates.rules === 'string') {
+					try {
+						const parsed = JSON.parse(preparedUpdates.rules)
+						if (Array.isArray(parsed)) preparedUpdates.rules = parsed
+					} catch (e) {
+						// keep as string fallback
+					}
+				}
+			}
+
+			const updated = await dataService.updateCommunity(community.id, preparedUpdates, userId)
 			if (updated) {
 				setCommunity(updated)
 				setEditDialogOpen(false)
