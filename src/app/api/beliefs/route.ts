@@ -60,7 +60,7 @@ function calculateStatusAndTrend(initial: number, current: number) {
 // GET /api/beliefs - List beliefs with filtering and pagination
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -154,7 +154,7 @@ export async function GET(request: NextRequest) {
 // POST /api/beliefs - Create a new belief
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();

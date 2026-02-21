@@ -82,7 +82,7 @@ function analyzeDebateForBeliefs(messages: any[]): any[] {
 // POST /api/beliefs/sync-debates - Sync beliefs with debate analysis
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
