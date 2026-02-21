@@ -148,8 +148,7 @@ export async function POST(req: Request) {
 
 		const result = await withTimeout(
 			model.generateContent(prompt),
-			GYM_CONSTANTS.API_TIMEOUTS.AI_RESPONSE_MS,
-			"AI response generation timed out"
+			GYM_CONSTANTS.API_TIMEOUTS.AI_RESPONSE_MS
 		)
 		const responseText = result.response.text()
 
