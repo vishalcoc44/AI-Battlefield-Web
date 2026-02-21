@@ -49,7 +49,7 @@ function analyzeDebateForBeliefs(messages: any[]): any[] {
     for (const pattern of beliefPatterns) {
       if (pattern.test(content)) {
         // Extract potential belief topics (very basic)
-        const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 10);
+        const sentences = content.split(/[.!?]+/).filter((s: string) => s.trim().length > 10);
 
         for (const sentence of sentences) {
           if (pattern.test(sentence)) {
