@@ -12,6 +12,7 @@ import { ScrollReveal } from "@/components/ui/scroll-reveal"
 import { HeroHologram } from "@/components/ui/hero-hologram"
 import { CyberSeparator } from "@/components/ui/cyber-separator"
 import { Footer } from "@/components/ui/footer"
+import { PreviewMarquee } from "@/components/ui/preview-marquee"
 import { ArrowRight, Brain, Shield, Zap, Users, Trophy, Globe, Sword, Play, Terminal, Cpu, Network, Activity } from "lucide-react"
 
 export default function LandingPage() {
@@ -70,6 +71,7 @@ export default function LandingPage() {
         </nav>
 
         <div className="flex items-center gap-3 pr-1">
+          <PreviewMarquee />
           <Link href="/auth" className={`transition-all duration-500 ${scrolled ? "opacity-0 w-0 pointer-events-none" : "opacity-100 w-auto"}`}>
             <Button size="sm" variant="ghost" className="text-zinc-400 hover:text-white hover:bg-transparent text-xs font-mono font-medium tracking-wide">
               [ LOGIN ]
